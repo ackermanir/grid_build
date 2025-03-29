@@ -329,12 +329,12 @@ export const getShopCards = (techTier: number): Card[] => {
   let maxCost = 3;
   
   switch (techTier) {
-    case 1: maxCost = 3; break;
-    case 2: maxCost = 5; break;
+    case 1: maxCost = 7; break;
+    case 2: maxCost = 7; break;
     case 3: maxCost = 7; break;
     case 4: maxCost = 9; break;
     case 5: maxCost = Infinity; break;
-    default: maxCost = 3;
+    default: maxCost = 7;
   }
   
   const regularCards = CARDS.filter(c => 

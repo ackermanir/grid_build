@@ -51,7 +51,7 @@ export const ShopArea: React.FC<ShopAreaProps> = ({
                   if (key === 'land_benefit' && value === true) {
                     return <div key={key}>Land Benefit</div>;
                   }
-                  if (value) {
+                  if (value && typeof value !== 'object') {
                     return (
                       <div key={key}>
                         {key}: {value}
