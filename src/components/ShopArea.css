@@ -39,22 +39,24 @@
 }
 
 .shop-cards {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
   gap: 10px;
   overflow-y: auto;
+  max-height: 500px;
   flex-grow: 1;
 }
 
 .shop-card {
   background-color: #2c3e50;
   border-radius: 8px;
-  padding: 12px;
+  padding: 8px;
   display: flex;
   flex-direction: column;
   transition: all 0.2s;
   position: relative;
   user-select: none;
+  font-size: 0.9em;
 }
 
 .shop-card.affordable {
@@ -75,7 +77,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 10px;
+  margin-bottom: 5px;
 }
 
 .card-name {
@@ -97,8 +99,8 @@
 }
 
 .card-emoji {
-  font-size: 24px;
-  margin-bottom: 5px;
+  font-size: 20px;
+  margin-bottom: 3px;
 }
 
 .card-type {
