@@ -75,7 +75,7 @@ export const drawCards = (
 export const generateShopCards = (techTier: number): Card[] => {
   const availableCards = getShopCards(techTier);
   
-  // Randomly select cards
+  // Prepare selected cards array
   const selectedCards: Card[] = [];
   
   // First, add all tech upgrade cards within the next tier
@@ -89,33 +89,26 @@ export const generateShopCards = (techTier: number): Card[] => {
     selectedCards.push({...card, id: `shop-${card.name.toLowerCase().replace(/\s+/g, '-')}`});
   });
   
-  // Then add other regular cards
-  const regularCards = availableCards.filter(card => card.type !== 'Tech');
-  const shuffled = shuffleArray(regularCards);
+  // Then add ALL regular cards (not just a subset)
+  const regularCards = availableCards.filter(card => card.type !== 'Tech' && card.shopNumber === 5);
   
-  // Add up to 8 regular cards
-  for (let i = 0; i < Math.min(8, shuffled.length); i++) {
-    selectedCards.push({...shuffled[i], id: `shop-${shuffled[i].name.toLowerCase().replace(/\s+/g, '-')}-${i}`});
-  }
+  // Add all regular cards with unique IDs
+  regularCards.forEach((card, i) => {
+    selectedCards.push({...card, id: `shop-${card.name.toLowerCase().replace(/\s+/g, '-')}-${i}`});
+  });
   
   return selectedCards;
 };
 
-// Apply damage to grid tiles
-export const applyDamageToGrid = (
-  grid: Tile[][], 
-  round: number
-): { grid: Tile[][], woundCount: number } => {
-  const newGrid = JSON.parse(JSON.stringify(grid)) as Tile[][];
-  let woundCount = 0;
-  
+// Generate pending enemy attacks for the current round
+export const generatePendingAttacks = (round: number): {positions: [number, number][], damagePerAttack: number} => {
   // Determine attack pattern based on round
   let attackCount = 0;
   let damagePerAttack = 0;
   
   if (round < 3) {
     // No attacks in rounds 1-2
-    return { grid: newGrid, woundCount: 0 };
+    return { positions: [], damagePerAttack: 0 };
   } else if (round >= 3 && round <= 7) {
     // Attack 1-3 random tiles with 2 damage each
     attackCount = Math.floor(Math.random() * 3) + 1; // 1-3
@@ -141,13 +134,26 @@ export const applyDamageToGrid = (
   // Shuffle positions to get random attack order
   const shuffledPositions = shuffleArray(positions);
   
-  // Apply damage to the first 'attackCount' positions
-  for (let i = 0; i < Math.min(attackCount, positions.length); i++) {
-    const [row, col] = shuffledPositions[i];
+  // Select the positions to attack
+  const attackPositions = shuffledPositions.slice(0, Math.min(attackCount, positions.length));
+  
+  return { positions: attackPositions, damagePerAttack };
+};
+
+// Apply damage to grid tiles
+export const applyDamageToGrid = (
+  grid: Tile[][], 
+  pendingAttacks: {positions: [number, number][], damagePerAttack: number}
+): { grid: Tile[][], woundCount: number } => {
+  const newGrid = JSON.parse(JSON.stringify(grid)) as Tile[][];
+  let woundCount = 0;
+  
+  // Apply damage to the attack positions
+  for (const [row, col] of pendingAttacks.positions) {
     const tile = newGrid[row][col];
     
     // Apply damage to the tile
-    tile.damage = damagePerAttack;
+    tile.damage = pendingAttacks.damagePerAttack;
     
     // Calculate total defense including history
     let totalDefense = tile.defense;
@@ -352,6 +358,9 @@ export const initializeGameState = (): GameState => {
   // Draw initial hand
   const { drawnCards: initialHand, newDeck } = drawCards(shuffledDeck, [], 5);
   
+  // Generate initial pending attacks (round 1 won't have any attacks)
+  const pendingAttacks = generatePendingAttacks(1);
+  
   return {
     round: 1,
     grid: createInitialGrid(),
@@ -362,6 +371,7 @@ export const initializeGameState = (): GameState => {
     player: createInitialPlayerAttributes(),
     selectedCard: null,
     gameOver: false,
-    victory: false
+    victory: false,
+    pendingAttacks
   };
 };

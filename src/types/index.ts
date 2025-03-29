@@ -65,6 +65,10 @@ export interface GameState {
   selectedCard: Card | null;
   gameOver: boolean;
   victory: boolean;
+  pendingAttacks: {
+    positions: [number, number][];
+    damagePerAttack: number;
+  };
   specialState?: {
     type: 'missile_dome' | 'archives';
     data: any;

@@ -14,9 +14,11 @@ import {
   applyLandBenefit,
   applyCardEffectToTile,
   applyStoneSkinEffect,
-  getAdjacentTiles
+  getAdjacentTiles,
+  generatePendingAttacks
 } from './utils/gameUtils';
 import { createWoundCard, getAllCards } from './data/cards';
+import { shuffleDeck } from './utils/cardUtils';
 import { GameState, Card, Tile } from './types';
 import './App.css';
 
@@ -419,12 +421,13 @@ const App: React.FC = () => {
     }
     
     // Discard remaining hand
-    const newDiscard = [...gameState.discard, ...gameState.hand];
+    let newDiscard = [...gameState.discard, ...gameState.hand];
+    let newDeck = [...gameState.deck];
     
-    // Apply damage from enemies
+    // Apply damage from pending attacks
     const { grid: damagedGrid, woundCount } = applyDamageToGrid(
       gameState.grid, 
-      gameState.round
+      gameState.pendingAttacks
     );
     
     // Add wounds to discard pile
@@ -451,12 +454,29 @@ const App: React.FC = () => {
       cardDraw: nextCardDraw
     };
     
-    // Draw new hand
-    const { drawnCards, newDeck, newDiscard: updatedDiscard } = 
-      drawCards(gameState.deck, newDiscard, nextCardDraw);
+    // Draw new hand for next turn
+    let drawnCards: Card[] = [];
+    
+    // If deck doesn't have enough cards, shuffle discard into deck
+    if (newDeck.length < nextCardDraw && newDiscard.length > 0) {
+      console.log('Reshuffling discard pile into deck');
+      // Shuffle discard pile to form new deck
+      newDeck = shuffleDeck([...newDeck, ...newDiscard]);
+      newDiscard = [];
+    }
+    
+    // Draw cards
+    const drawResult = drawCards(newDeck, newDiscard, nextCardDraw);
+    drawnCards = drawResult.drawnCards;
+    newDeck = drawResult.newDeck;
+    newDiscard = drawResult.newDiscard;
     
     // Reset grid for new turn
     const newGrid = resetGridForNewTurn(damagedGrid);
+    
+    // Generate pending attacks for the next round
+    const nextRound = gameState.round + 1;
+    const pendingAttacks = generatePendingAttacks(nextRound);
     
     // Check for game over conditions
     const { gameOver, victory } = checkGameOver({
@@ -467,16 +487,17 @@ const App: React.FC = () => {
     // Update game state
     setGameState({
       ...gameState,
-      round: gameState.round + 1,
+      round: nextRound,
       grid: newGrid,
       hand: drawnCards,
       deck: newDeck,
-      discard: updatedDiscard,
+      discard: newDiscard,
       player: newPlayerState,
       selectedCard: null,
       gameOver,
       victory,
-      specialState: undefined
+      specialState: undefined,
+      pendingAttacks
     });
   };
 
@@ -502,6 +523,7 @@ const App: React.FC = () => {
             selectedCard={gameState.selectedCard}
             onTileClick={handleCardPlacement}
             missileDomeSelection={missileDomeSelection}
+            pendingAttacks={gameState.pendingAttacks}
           />
           <div className="side-panel">
             <ShopArea 

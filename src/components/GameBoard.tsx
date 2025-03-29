@@ -10,13 +10,18 @@ interface GameBoardProps {
     tilesSelected: [number, number][];
     tilesNeeded: number;
   } | null;
+  pendingAttacks?: {
+    positions: [number, number][];
+    damagePerAttack: number;
+  };
 }
 
 export const GameBoard: React.FC<GameBoardProps> = ({ 
   grid, 
   selectedCard, 
   onTileClick,
-  missileDomeSelection = null
+  missileDomeSelection = null,
+  pendingAttacks
 }) => {
   // Determine if a tile is eligible for card placement
   const isTileEligible = (tile: Tile, rowIndex: number, colIndex: number): boolean => {
@@ -52,10 +57,15 @@ export const GameBoard: React.FC<GameBoardProps> = ({
               ([r, c]) => r === rowIndex && c === colIndex
             );
             
+            // Check if this tile has a pending attack
+            const hasPendingAttack = pendingAttacks?.positions.some(
+              ([r, c]) => r === rowIndex && c === colIndex
+            );
+            
             return (
               <div
                 key={`tile-${rowIndex}-${colIndex}`}
-                className={`board-tile ${landClass} ${isEligible ? 'eligible' : ''} ${isSelectedForMissileDome ? 'missile-dome-selected' : ''}`}
+                className={`board-tile ${landClass} ${isEligible ? 'eligible' : ''} ${isSelectedForMissileDome ? 'missile-dome-selected' : ''} ${hasPendingAttack ? 'pending-attack' : ''}`}
                 onClick={() => (isEligible || isSelectedForMissileDome) && onTileClick(rowIndex, colIndex)}
               >
                 {/* Land type indicator */}
@@ -90,6 +100,13 @@ export const GameBoard: React.FC<GameBoardProps> = ({
                 {tile.damage > 0 && (
                   <div className="damage-value">
                     {tile.damage}💥
+                  </div>
+                )}
+                
+                {/* Pending attack indicator */}
+                {hasPendingAttack && (
+                  <div className="pending-attack-value">
+                    {pendingAttacks?.damagePerAttack}⚠️
                   </div>
                 )}
                 
