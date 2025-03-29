@@ -5,9 +5,10 @@ export interface Tile {
   defense: number;
   damage: number;
   cardPlayed: Card | null;
+  defenseHistory?: Array<{ defense: number, turnsRemaining: number }>;
 }
 
-export type CardType = 'Defense' | 'Gold' | 'Action';
+export type CardType = 'Defense' | 'Gold' | 'Action' | 'Tech';
 
 export interface CardEffect {
   defense?: number;
@@ -17,6 +18,17 @@ export interface CardEffect {
   buy?: number;
   tech?: number;
   land_benefit?: boolean;
+  land_benefit_double?: boolean;
+  discard_draw?: boolean;
+  defense_adjacent?: boolean;
+  defense_all_played?: boolean;
+  defense_duration?: number;
+  conditional_effect?: {
+    condition: 'land_type';
+    land_type?: LandType;
+    effects: CardEffect;
+  };
+  special_effect?: 'missile_dome' | 'archives' | 'stone_skin' | 'durable_defense';
 }
 
 export interface Card {
@@ -24,6 +36,7 @@ export interface Card {
   name: string;
   type: CardType;
   cost: number;
+  shopNumber: number;
   effects: CardEffect;
   description: string;
   emoji: string;
@@ -52,4 +65,8 @@ export interface GameState {
   selectedCard: Card | null;
   gameOver: boolean;
   victory: boolean;
+  specialState?: {
+    type: 'missile_dome' | 'archives';
+    data: any;
+  };
 }

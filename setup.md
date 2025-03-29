@@ -44,7 +44,7 @@ A deck building game similar to Spirit Island and Dominion, with a grid-based pl
   * Attack 5 random tiles with 4 damage each
 
 ### Attack Resolution
-* Enemy attacks are shown with a number in the top right corner of a tile
+* Enemy attacks that are going to happen at the end of the turn are shown with a number in the top right corner of a tile
 * Player can negate damage by playing a card with defense on that tile
 * If damage is not negated:
   * A wound is added to player's discard pile
@@ -89,6 +89,7 @@ A deck building game similar to Spirit Island and Dominion, with a grid-based pl
 * Click on card to play it, then click on grid tile to place it
 * Ineligible grid tiles should not respond to clicks
 * Click on card in shop to buy (if you have enough gold)
+* All card types should be available at once to buy in the shop (unless the shop is out of that card type)
 * End turn button
 
 ## Technical Implementation
@@ -96,4 +97,4 @@ A deck building game similar to Spirit Island and Dominion, with a grid-based pl
 * Built using React and TypeScript
 * Deployed on GitHub Pages
 * Core game logic separated from UI for testing
-* Cards available to buy are defined in cards.csv file, please read this file and implement them
+* Cards available to buy are defined in cards.csv file, please read this file and implement them as strongly typed

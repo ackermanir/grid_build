@@ -1,197 +1,33 @@
-import { Card, CardType } from '../types';
+import { Card } from '../types';
+import { parseCSVCards, createCardInstance } from '../utils/cardUtils';
+import fs from 'fs';
+import path from 'path';
 
-// Card definitions
-export const CARDS: Card[] = [
-  {
-    id: 'defend',
-    name: 'Defend',
-    type: 'Defense',
-    cost: 0,
-    effects: { defense: 2 },
-    description: 'Defend a tile against 2 damage',
-    emoji: '🛡️'
-  },
-  {
-    id: 'copper',
-    name: 'Copper',
-    type: 'Gold',
-    cost: 0,
-    effects: { gold: 1 },
-    description: 'Generate 1 gold',
-    emoji: '💰'
-  },
-  {
-    id: 'til-the-land',
-    name: 'Til the Land',
-    type: 'Action',
-    cost: 0,
-    effects: { land_benefit: true },
-    description: 'Get the benefit of the land',
-    emoji: '🌱'
-  },
-  {
-    id: 'market',
-    name: 'Market',
-    type: 'Action',
-    cost: 2,
-    effects: { draw: 1, buy: 1 },
-    description: 'Draw 1 card and gain 1 buy',
-    emoji: '🏪'
-  },
-  {
-    id: 'silver',
-    name: 'Silver',
-    type: 'Gold',
-    cost: 3,
-    effects: { gold: 2 },
-    description: 'Generate 2 gold',
-    emoji: '💰💰'
-  },
-  {
-    id: 'scout',
-    name: 'Scout',
-    type: 'Action',
-    cost: 2,
-    effects: { card_play: 1, draw: 1 },
-    description: 'Gain 1 card play and draw 1 card',
-    emoji: '👁️'
-  },
-  {
-    id: 'farmer',
-    name: 'Farmer',
-    type: 'Action',
-    cost: 3,
-    effects: { land_benefit: true, gold: 1 },
-    description: 'Get land benefit and 1 gold',
-    emoji: '👨‍🌾'
-  },
-  {
-    id: 'barricade',
-    name: 'Barricade',
-    type: 'Defense',
-    cost: 4,
-    effects: { defense: 3, draw: 1 },
-    description: 'Defend a tile against 3 damage and draw 1 card',
-    emoji: '🧱'
-  },
-  {
-    id: 'innovate',
-    name: 'Innovate',
-    type: 'Action',
-    cost: 5,
-    effects: { tech: 1 },
-    description: 'Advance tech tier by 1',
-    emoji: '💡'
-  },
-  {
-    id: 'gold',
-    name: 'Gold',
-    type: 'Gold',
-    cost: 6,
-    effects: { gold: 3 },
-    description: 'Generate 3 gold',
-    emoji: '💰💰💰'
-  },
-  {
-    id: 'laboratory',
-    name: 'Laboratory',
-    type: 'Action',
-    cost: 5,
-    effects: { draw: 2, card_play: 1 },
-    description: 'Draw 2 cards and gain 1 card play',
-    emoji: '🧪'
-  },
-  {
-    id: 'fortify',
-    name: 'Fortify',
-    type: 'Defense',
-    cost: 6,
-    effects: { defense: 4, card_play: 1 },
-    description: 'Defend a tile against 4 damage and gain 1 card play',
-    emoji: '🏰'
-  },
-  {
-    id: 'research',
-    name: 'Research',
-    type: 'Action',
-    cost: 6,
-    effects: { draw: 1, tech: 1 },
-    description: 'Draw 1 card and advance tech tier by 1',
-    emoji: '📚'
-  },
-  {
-    id: 'elite-guard',
-    name: 'Elite Guard',
-    type: 'Defense',
-    cost: 7,
-    effects: { defense: 5, land_benefit: true },
-    description: 'Defend a tile against 5 damage and get land benefit',
-    emoji: '👮'
-  },
-  {
-    id: 'headquarters',
-    name: 'Headquarters',
-    type: 'Action',
-    cost: 8,
-    effects: { card_play: 2, buy: 1, draw: 1 },
-    description: 'Gain 2 card plays, 1 buy, and draw 1 card',
-    emoji: '🏢'
-  },
-  {
-    id: 'breakthrough',
-    name: 'Breakthrough',
-    type: 'Action',
-    cost: 8,
-    effects: { tech: 2 },
-    description: 'Advance tech tier by 2',
-    emoji: '⚡'
-  },
-  {
-    id: 'treasure-chamber',
-    name: 'Treasure Chamber',
-    type: 'Gold',
-    cost: 9,
-    effects: { gold: 4, draw: 1 },
-    description: 'Generate 4 gold and draw 1 card',
-    emoji: '💎'
-  },
-  {
-    id: 'ultimate-defense',
-    name: 'Ultimate Defense',
-    type: 'Defense',
-    cost: 10,
-    effects: { defense: 7 },
-    description: 'Defend a tile against 7 damage',
-    emoji: '🛑'
-  },
-  {
-    id: 'mastery',
-    name: 'Mastery',
-    type: 'Action',
-    cost: 12,
-    effects: { tech: 3 },
-    description: 'Advance tech tier by 3',
-    emoji: '🌟'
-  }
-];
+let CARDS: Card[] = [];
 
-// Special card for wounds
-export const WOUND_CARD: Card = {
-  id: 'wound',
-  name: 'Wound',
-  type: 'Action',
-  cost: 0,
-  effects: {},
-  description: 'A wound that does nothing and takes up space in your hand',
-  emoji: '💔'
+// Read cards from CSV file
+try {
+  // We'll load this client-side in the React component
+  // This is just a placeholder for when code is imported
+  CARDS = [];
+} catch (error) {
+  console.error('Error loading cards from CSV file:', error);
+}
+
+// Function to load cards - will be called from App component
+export const loadCards = (csvContent: string): Card[] => {
+  CARDS = parseCSVCards(csvContent);
+  return CARDS;
+};
+
+// Get all cards
+export const getAllCards = (): Card[] => {
+  return CARDS;
 };
 
 // Create a new instance of a card with a unique ID
-export const createCardInstance = (card: Card, index: number): Card => {
-  return {
-    ...card,
-    id: `${card.id}-${index}`
-  };
+export const createNewCardInstance = (card: Card, index: number): Card => {
+  return createCardInstance(card, index);
 };
 
 // Create initial player deck according to game rules
@@ -225,5 +61,34 @@ export const createInitialDeck = (): Card[] => {
 
 // Create a wound card instance
 export const createWoundCard = (index: number): Card => {
-  return createCardInstance(WOUND_CARD, index);
+  const woundCard = CARDS.find(c => c.name === 'Wound');
+  if (!woundCard) {
+    throw new Error('Wound card not found in card definitions');
+  }
+  return createCardInstance(woundCard, index);
+};
+
+// Filter cards by tech tier and shop number
+export const getShopCards = (techTier: number): Card[] => {
+  // Tech cards (shopNumber=1) are always available but filtered by tier
+  const techCards = CARDS.filter(c => c.shopNumber === 1 && c.effects.tech && c.effects.tech <= techTier + 1);
+  
+  // Regular shop cards (shopNumber=5) filtered by cost based on tech tier
+  let maxCost = 3;
+  
+  switch (techTier) {
+    case 1: maxCost = 3; break;
+    case 2: maxCost = 5; break;
+    case 3: maxCost = 7; break;
+    case 4: maxCost = 9; break;
+    case 5: maxCost = Infinity; break;
+    default: maxCost = 3;
+  }
+  
+  const regularCards = CARDS.filter(c => 
+    c.shopNumber === 5 && 
+    c.cost <= maxCost
+  );
+  
+  return [...techCards, ...regularCards];
 };

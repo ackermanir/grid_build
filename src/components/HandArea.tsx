@@ -7,25 +7,43 @@ interface HandAreaProps {
   selectedCard: Card | null;
   onCardSelect: (card: Card) => void;
   cardPlays: number;
+  selectionMode?: 'play' | 'discard' | null;
+  selectedForDiscard?: Card[];
 }
 
 export const HandArea: React.FC<HandAreaProps> = ({ 
   hand, 
   selectedCard, 
   onCardSelect,
-  cardPlays
+  cardPlays,
+  selectionMode = null,
+  selectedForDiscard = []
 }) => {
-  // Determine if a card can be played (if player has card plays left)
+  // Determine if a card can be played based on selection mode
   const canPlayCard = (card: Card): boolean => {
+    if (selectionMode === 'discard') {
+      // In discard mode, all cards are selectable
+      return true;
+    }
+    
+    // In normal play mode, can only play if player has card plays left
     return cardPlays > 0;
   };
 
   return (
     <div className="hand-area">
-      <h2 className="hand-title">Your Hand ({hand.length})</h2>
+      <h2 className="hand-title">
+        {selectionMode === 'discard' 
+          ? 'Select Cards to Discard' 
+          : `Your Hand (${hand.length})`
+        }
+      </h2>
       <div className="hand-cards">
         {hand.map(card => {
-          const isSelected = selectedCard && selectedCard.id === card.id;
+          const isSelected = selectionMode === 'discard'
+            ? selectedForDiscard.some(c => c.id === card.id)
+            : selectedCard && selectedCard.id === card.id;
+            
           const isPlayable = canPlayCard(card);
           
           return (
@@ -46,7 +64,7 @@ export const HandArea: React.FC<HandAreaProps> = ({
                   if (key === 'land_benefit' && value === true) {
                     return <div key={key}>Land Benefit</div>;
                   }
-                  if (value) {
+                  if (value && typeof value !== 'object') {
                     return (
                       <div key={key}>
                         {key}: {value}
@@ -56,10 +74,19 @@ export const HandArea: React.FC<HandAreaProps> = ({
                   return null;
                 })}
               </div>
+              {selectionMode === 'discard' && isSelected && (
+                <div className="discard-marker">Discard</div>
+              )}
             </div>
           );
         })}
       </div>
+      {selectionMode === 'discard' && (
+        <div className="discard-info">
+          Selected {selectedForDiscard.length} cards to discard.
+          Click "Confirm Discards" to draw that many cards.
+        </div>
+      )}
     </div>
   );
 };
