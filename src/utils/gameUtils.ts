@@ -345,10 +345,7 @@ export const checkGameOver = (gameState: GameState): { gameOver: boolean, victor
 };
 
 // Initialize the game state
-export const initializeGameState = (csvContent: string): GameState => {
-  // Load cards from CSV
-  const cards = getAllCards();
-  
+export const initializeGameState = (): GameState => {
   const initialDeck = createInitialDeck();
   const shuffledDeck = shuffleDeck(initialDeck);
   

@@ -1,24 +1,276 @@
 import { Card } from '../types';
-import { parseCSVCards, createCardInstance } from '../utils/cardUtils';
-import fs from 'fs';
-import path from 'path';
+import { createCardInstance } from '../utils/cardUtils';
 
-let CARDS: Card[] = [];
-
-// Read cards from CSV file
-try {
-  // We'll load this client-side in the React component
-  // This is just a placeholder for when code is imported
-  CARDS = [];
-} catch (error) {
-  console.error('Error loading cards from CSV file:', error);
-}
-
-// Function to load cards - will be called from App component
-export const loadCards = (csvContent: string): Card[] => {
-  CARDS = parseCSVCards(csvContent);
-  return CARDS;
-};
+// Card definitions based on cards.csv
+export const CARDS: Card[] = [
+  {
+    id: 'defend',
+    name: 'Defend',
+    emoji: '🛡️',
+    cost: 1,
+    shopNumber: 0,
+    type: 'Defense',
+    effects: { defense: 2 },
+    description: 'Add defense of 2 to grid played on'
+  },
+  {
+    id: 'copper',
+    name: 'Copper',
+    emoji: '🥉',
+    cost: 1,
+    shopNumber: 0,
+    type: 'Gold',
+    effects: { gold: 1 },
+    description: 'Add +1 gold to player'
+  },
+  {
+    id: 'til-the-land',
+    name: 'Til the Land',
+    emoji: '🏞️',
+    cost: 2,
+    shopNumber: 0,
+    type: 'Action',
+    effects: { land_benefit: true },
+    description: 'Land Benefit'
+  },
+  {
+    id: 'wound',
+    name: 'Wound',
+    emoji: '💔',
+    cost: 0,
+    shopNumber: 0,
+    type: 'Action',
+    effects: {},
+    description: 'A wound that does nothing and takes up space in your hand'
+  },
+  {
+    id: 'gold-rush',
+    name: 'Gold Rush',
+    emoji: '💰',
+    cost: 6,
+    shopNumber: 5,
+    type: 'Gold',
+    effects: { 
+      gold: 3,
+      conditional_effect: {
+        condition: 'land_type',
+        land_type: 'gold',
+        effects: { gold: 1 }
+      }
+    },
+    description: '+3 Gold. If played on Yellow land, +1 Gold'
+  },
+  {
+    id: 'trading-post',
+    name: 'Trading Post',
+    emoji: '🏪',
+    cost: 4,
+    shopNumber: 5,
+    type: 'Action',
+    effects: { 
+      gold: 1, 
+      buy: 1,
+      land_benefit: true
+    },
+    description: '+1 Gold, +1 Buy, Land Benefit'
+  },
+  {
+    id: 'supply-chain',
+    name: 'Supply Chain',
+    emoji: '🔗',
+    cost: 7,
+    shopNumber: 5,
+    type: 'Action',
+    effects: { 
+      gold: 2, 
+      buy: 1,
+      draw: 1,
+      land_benefit: true
+    },
+    description: '+2 Gold, +1 Buy, +1 Card Drawn, Land Benefit'
+  },
+  {
+    id: 'sturdy-wall',
+    name: 'Sturdy Wall',
+    emoji: '🧱',
+    cost: 4,
+    shopNumber: 5,
+    type: 'Defense',
+    effects: { 
+      defense: 4,
+      land_benefit: true
+    },
+    description: 'Defense +4, Land Benefit'
+  },
+  {
+    id: 'missile-dome',
+    name: 'Missle Dome',
+    emoji: '🌐',
+    cost: 5,
+    shopNumber: 5,
+    type: 'Defense',
+    effects: { 
+      special_effect: 'missile_dome',
+      defense: 4
+    },
+    description: 'Defend +4 on two adjacent tiles (including diagonal)'
+  },
+  {
+    id: 'barricade',
+    name: 'Barricade',
+    emoji: '🚧',
+    cost: 5,
+    shopNumber: 5,
+    type: 'Defense',
+    effects: { 
+      defense: 2,
+      conditional_effect: {
+        condition: 'land_type',
+        land_type: 'card',
+        effects: { defense_adjacent: true, defense: 2 }
+      }
+    },
+    description: 'Defense +2. If played on Blue land, Defend +2 to all adjacent grids (including diagonal)'
+  },
+  {
+    id: 'stone-skin',
+    name: 'Stone Skin',
+    emoji: '🗿',
+    cost: 5,
+    shopNumber: 5,
+    type: 'Defense',
+    effects: { 
+      defense: 2,
+      defense_all_played: true,
+      special_effect: 'stone_skin'
+    },
+    description: 'Defense +2. All tiles that had a card played on them (including this one) get Defense +2'
+  },
+  {
+    id: 'durable-defense',
+    name: 'Durable Defense',
+    emoji: '🏛️',
+    cost: 8,
+    shopNumber: 5,
+    type: 'Defense',
+    effects: { 
+      defense: 4,
+      defense_duration: 2,
+      special_effect: 'durable_defense'
+    },
+    description: 'Defend +4. This defense carries over on this grid tile for two more turns'
+  },
+  {
+    id: 'library',
+    name: 'Library',
+    emoji: '📚',
+    cost: 5,
+    shopNumber: 5,
+    type: 'Action',
+    effects: { 
+      draw: 2,
+      land_benefit: true
+    },
+    description: '+2 Cards, Land Benefit'
+  },
+  {
+    id: 'archives',
+    name: 'Archives',
+    emoji: '📜',
+    cost: 3,
+    shopNumber: 5,
+    type: 'Action',
+    effects: { 
+      discard_draw: true,
+      special_effect: 'archives'
+    },
+    description: 'Discard any number of cards from your hand. Draw as many cards as was discarded'
+  },
+  {
+    id: 'split',
+    name: 'Split',
+    emoji: '🔀',
+    cost: 3,
+    shopNumber: 5,
+    type: 'Action',
+    effects: { 
+      card_play: 2,
+      draw: 1
+    },
+    description: '+2 card plays, +1 Card Drawn'
+  },
+  {
+    id: 'research-lab',
+    name: 'Research Lab',
+    emoji: '🧪',
+    cost: 6,
+    shopNumber: 5,
+    type: 'Action',
+    effects: { 
+      draw: 1,
+      card_play: 1,
+      conditional_effect: {
+        condition: 'land_type',
+        land_type: 'card',
+        effects: { draw: 1 }
+      }
+    },
+    description: '+1 Card Drawn, +1 Card Play. If played on Blue Land, +1 Card Drawn'
+  },
+  {
+    id: 'cornucopia',
+    name: 'Cornucopia',
+    emoji: '🏕️',
+    cost: 5,
+    shopNumber: 5,
+    type: 'Action',
+    effects: { 
+      land_benefit: true,
+      land_benefit_double: true
+    },
+    description: 'Land Benefit x2'
+  },
+  {
+    id: 'tech-upgrade-2',
+    name: 'Tech Upgrade 2',
+    emoji: '⚙️',
+    cost: 6,
+    shopNumber: 1,
+    type: 'Tech',
+    effects: { tech: 2 },
+    description: 'Upgrade to tech tier 2'
+  },
+  {
+    id: 'tech-upgrade-3',
+    name: 'Tech Upgrade 3',
+    emoji: '🏗️',
+    cost: 8,
+    shopNumber: 1,
+    type: 'Tech',
+    effects: { tech: 3 },
+    description: 'Upgrade to tech tier 3'
+  },
+  {
+    id: 'tech-upgrade-4',
+    name: 'Tech Upgrade 4',
+    emoji: '☢️',
+    cost: 10,
+    shopNumber: 1,
+    type: 'Tech',
+    effects: { tech: 4 },
+    description: 'Upgrade to tech tier 4'
+  },
+  {
+    id: 'tech-upgrade-5',
+    name: 'Tech Upgrade 5',
+    emoji: '🚀',
+    cost: 12,
+    shopNumber: 1,
+    type: 'Tech',
+    effects: { tech: 5 },
+    description: 'Upgrade to tech tier 5'
+  }
+];
 
 // Get all cards
 export const getAllCards = (): Card[] => {

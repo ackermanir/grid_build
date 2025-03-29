@@ -16,38 +16,26 @@ import {
   applyStoneSkinEffect,
   getAdjacentTiles
 } from './utils/gameUtils';
-import { createWoundCard, loadCards } from './data/cards';
+import { createWoundCard, getAllCards } from './data/cards';
 import { GameState, Card, Tile } from './types';
 import './App.css';
 
 const App: React.FC = () => {
   const [gameState, setGameState] = useState<GameState | null>(null);
-  const [cardsLoaded, setCardsLoaded] = useState(false);
   const [cardSelectionMode, setCardSelectionMode] = useState<'play' | 'discard' | null>(null);
   const [missileDomeSelection, setMissileDomeSelection] = useState<{
     tilesSelected: [number, number][];
     tilesNeeded: number;
   } | null>(null);
 
-  // Load cards from CSV file
+  // Initialize game
   useEffect(() => {
-    const loadCardData = async () => {
-      try {
-        const response = await fetch('/cards.csv');
-        const csvContent = await response.text();
-        loadCards(csvContent);
-        const initialState = initializeGameState(csvContent);
-        setGameState(initialState);
-        setCardsLoaded(true);
-      } catch (error) {
-        console.error('Error loading card data:', error);
-      }
-    };
-    
-    loadCardData();
+    // Initialize with cards from our hardcoded set
+    const initialState = initializeGameState();
+    setGameState(initialState);
   }, []);
 
-  if (!gameState || !cardsLoaded) {
+  if (!gameState) {
     return <div className="loading">Loading game data...</div>;
   }
 
@@ -494,18 +482,8 @@ const App: React.FC = () => {
 
   // Handle starting a new game
   const handleNewGame = () => {
-    const loadCardData = async () => {
-      try {
-        const response = await fetch('/cards.csv');
-        const csvContent = await response.text();
-        const initialState = initializeGameState(csvContent);
-        setGameState(initialState);
-      } catch (error) {
-        console.error('Error loading card data:', error);
-      }
-    };
-    
-    loadCardData();
+    const initialState = initializeGameState();
+    setGameState(initialState);
   };
 
   return (
