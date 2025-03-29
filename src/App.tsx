@@ -236,6 +236,9 @@ const App: React.FC = () => {
     // Remove the played card from hand (unless it's a special effect that stays in play)
     newHand = newHand.filter(c => c.id !== card.id);
     
+    // Add the played card to the discard pile
+    newDiscard.push(card);
+    
     // Handle card draw effects
     let drawCount = 0;
     if (card.effects.draw) {

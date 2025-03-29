@@ -90,7 +90,7 @@ export const generateShopCards = (techTier: number): Card[] => {
   });
   
   // Then add ALL regular cards (not just a subset)
-  const regularCards = availableCards.filter(card => card.type !== 'Tech' && card.shopNumber === 5);
+  const regularCards = availableCards.filter(card => card.type !== 'Tech');
   
   // Add all regular cards with unique IDs
   regularCards.forEach((card, i) => {
