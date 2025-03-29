@@ -1,0 +1,20 @@
+name,type,cost,effect,description,emoji
+Defend,Defense,0,defense:2,Defend a tile against 2 damage,🛡️
+Copper,Gold,0,gold:1,Generate 1 gold,💰
+Til the Land,Action,0,land_benefit:true,Get the benefit of the land,🌱
+Market,Action,2,draw:1|buy:1,Draw 1 card and gain 1 buy,🏪
+Silver,Gold,3,gold:2,Generate 2 gold,💰💰
+Scout,Action,2,card_play:1|draw:1,Gain 1 card play and draw 1 card,👁️
+Farmer,Action,3,land_benefit:true|gold:1,Get land benefit and 1 gold,👨‍🌾
+Barricade,Defense,4,defense:3|draw:1,Defend a tile against 3 damage and draw 1 card,🧱
+Innovate,Action,5,tech:1,Advance tech tier by 1,💡
+Gold,Gold,6,gold:3,Generate 3 gold,💰💰💰
+Laboratory,Action,5,draw:2|card_play:1,Draw 2 cards and gain 1 card play,🧪
+Fortify,Defense,6,defense:4|card_play:1,Defend a tile against 4 damage and gain 1 card play,🏰
+Research,Action,6,draw:1|tech:1,Draw 1 card and advance tech tier by 1,📚
+Elite Guard,Defense,7,defense:5|land_benefit:true,Defend a tile against 5 damage and get land benefit,👮
+Headquarters,Action,8,card_play:2|buy:1|draw:1,Gain 2 card plays, 1 buy, and draw 1 card,🏢
+Breakthrough,Action,8,tech:2,Advance tech tier by 2,⚡
+Treasure Chamber,Gold,9,gold:4|draw:1,Generate 4 gold and draw 1 card,💎
+Ultimate Defense,Defense,10,defense:7,Defend a tile against 7 damage,🛑
+Mastery,Action,12,tech:3,Advance tech tier by 3,🌟
