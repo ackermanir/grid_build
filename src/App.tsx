@@ -4,6 +4,7 @@ import { PlayerInfo } from './components/PlayerInfo';
 import { ShopArea } from './components/ShopArea';
 import { HandArea } from './components/HandArea';
 import { GameOver } from './components/GameOver';
+import { VersionDisplay } from './components/VersionDisplay';
 import { 
   initializeGameState, 
   drawCards, 
@@ -30,6 +31,10 @@ const App: React.FC = () => {
     tilesNeeded: number;
   } | null>(null);
 
+  // Version information
+  const version = '1.0.2';
+  const lastUpdated = new Date().toLocaleString();
+
   // Initialize game
   useEffect(() => {
     // Initialize with cards from our hardcoded set
@@ -43,6 +48,9 @@ const App: React.FC = () => {
 
   // Handle card selection from hand
   const handleCardSelect = (card: Card) => {
+    console.log('handleCardSelect called with card:', card?.name);
+    console.log('Current hand:', gameState.hand.map(c => c.name));
+    
     if (missileDomeSelection) {
       // If in missile dome selection mode, ignore card selection
       return;
@@ -84,6 +92,12 @@ const App: React.FC = () => {
       }
     } else {
       // Regular card selection mode
+      console.log('Setting selectedCard to:', gameState.selectedCard?.id === card.id ? 'null' : card.name);
+      // Only allow selection if the card is actually in the hand
+      if (!gameState.hand.some(c => c.id === card.id)) {
+        console.log('Card not in hand, ignoring selection');
+        return;
+      }
       setGameState(prev => ({
         ...prev!,
         selectedCard: prev!.selectedCard?.id === card.id ? null : card
@@ -93,6 +107,7 @@ const App: React.FC = () => {
 
   // Handle card placement on grid
   const handleCardPlacement = (rowIndex: number, colIndex: number) => {
+    console.log('handleCardPlacement called with selectedCard:', gameState.selectedCard?.name);
     // Handle missile dome selection mode
     if (missileDomeSelection) {
       if (missileDomeSelection.tilesSelected.length < missileDomeSelection.tilesNeeded) {
@@ -119,7 +134,8 @@ const App: React.FC = () => {
               setMissileDomeSelection(null);
               setGameState(prev => ({
                 ...prev!,
-                grid: newGrid
+                grid: newGrid,
+                selectedCard: null // Ensure selectedCard is cleared
               }));
             }, 500);
           }
@@ -128,15 +144,32 @@ const App: React.FC = () => {
       return;
     }
     
-    if (!gameState.selectedCard) return;
+    if (!gameState.selectedCard) {
+      console.log('No card selected, returning early');
+      return;
+    }
     
     // Check if a card has already been played on this tile
-    if (gameState.grid[rowIndex][colIndex].cardPlayed) return;
+    if (gameState.grid[rowIndex][colIndex].cardPlayed) {
+      console.log('Tile already has a card played');
+      return;
+    }
     
     // Check if player has enough card plays
-    if (gameState.player.cardPlays <= 0) return;
+    if (gameState.player.cardPlays <= 0) {
+      console.log('No card plays remaining');
+      return;
+    }
     
     const card = gameState.selectedCard;
+    console.log('Playing card:', card.name);
+    
+    // Clear selected card immediately
+    console.log('Clearing selectedCard state');
+    setGameState(prev => ({
+      ...prev!,
+      selectedCard: null
+    }));
     
     // Track tiles that have cards played on them in this turn
     const tileMap = new Map<string, boolean>();
@@ -243,8 +276,16 @@ const App: React.FC = () => {
     let newDeck = [...gameState.deck];
     let newDiscard = [...gameState.discard];
     
-    // Remove the played card from hand (unless it's a special effect that stays in play)
-    newHand = newHand.filter(c => c.id !== card.id);
+    console.log('Hand before card removal:', newHand.map(c => c.name));
+    
+    // Find the index of the first matching card
+    const cardIndex = newHand.findIndex(c => c.id === card.id);
+    if (cardIndex !== -1) {
+      // Remove the card at the found index
+      newHand.splice(cardIndex, 1);
+    }
+    
+    console.log('Hand after card removal:', newHand.map(c => c.name));
     
     // Add the played card to the discard pile
     newDiscard.push(card);
@@ -409,6 +450,7 @@ const App: React.FC = () => {
 
   // Handle end turn
   const handleEndTurn = () => {
+    console.log('handleEndTurn called with selectedCard:', gameState.selectedCard?.name);
     // If in a special state, handle it first
     if (cardSelectionMode === 'discard') {
       handleArchivesComplete();
@@ -499,6 +541,7 @@ const App: React.FC = () => {
     });
     
     // Update game state
+    console.log('Setting selectedCard to null in end turn');
     setGameState({
       ...gameState,
       round: nextRound,
@@ -512,8 +555,8 @@ const App: React.FC = () => {
       victory,
       specialState: undefined,
       pendingAttacks,
-      goldRushEffects: undefined, // Reset gold rush effects
-      partialLandBenefits: undefined // Reset partial land benefits
+      goldRushEffects: undefined,
+      partialLandBenefits: undefined
     });
   };
 
@@ -525,6 +568,7 @@ const App: React.FC = () => {
 
   return (
     <div className="App">
+      <VersionDisplay version={version} lastUpdated={lastUpdated} />
       <header className="App-header">
         <h1>Grid Builder</h1>
       </header>
