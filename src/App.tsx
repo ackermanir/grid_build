@@ -294,8 +294,12 @@ const App: React.FC = () => {
     }
     
     // Add card draw from land benefit if applicable
-    if (card.effects.land_benefit && tile.landType === 'card') {
-      drawCount += 1 * (card.effects.land_benefit_double ? 2 : 1);
+    if (card.effects.land_benefit) {
+      if (tile.landType === 'card') {
+        drawCount += 1 * (card.effects.land_benefit_double ? 2 : 1);
+      } else if (tile.landType === 'play' && (newPartialBenefits?.cardDraw ?? 0) >= 1) {
+        drawCount += Math.floor(newPartialBenefits?.cardDraw ?? 0);
+      }
     }
     
     // Add card draw from conditional effects if applicable
