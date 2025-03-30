@@ -1,5 +1,5 @@
 import { Card, GameState, Tile, LandType, PlayerAttributes } from '../types';
-import { getAllCards, createInitialDeck, createWoundCard, getShopCards } from '../data/cards';
+import { createInitialDeck, getShopCards } from '../data/cards';
 import { shuffleDeck, drawCards as drawCardsUtil } from './cardUtils';
 
 // Create initial 3x3 grid with random land distribution
