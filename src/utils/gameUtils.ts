@@ -222,10 +222,27 @@ export const resetGridForNewTurn = (grid: Tile[][]): Tile[][] => {
 export const applyLandBenefit = (
   landType: LandType, 
   playerAttributes: PlayerAttributes,
-  isDouble: boolean = false
-): PlayerAttributes => {
+  isDouble: boolean = false,
+  partialBenefits?: {
+    cardPlays: number;
+    cardDraw: number;
+    gold: number;
+  }
+): { 
+  playerAttributes: PlayerAttributes;
+  partialBenefits: {
+    cardPlays: number;
+    cardDraw: number;
+    gold: number;
+  };
+} => {
   const newAttributes = { ...playerAttributes };
   const multiplier = isDouble ? 2 : 1;
+  const newPartialBenefits = partialBenefits || {
+    cardPlays: 0,
+    cardDraw: 0,
+    gold: 0
+  };
   
   switch (landType) {
     case 'gold':
@@ -233,21 +250,32 @@ export const applyLandBenefit = (
       newAttributes.gold += 2 * multiplier;
       break;
     case 'card':
-      // Draw 1 card
-      // (drawing will be handled separately)
+      // +1 card draw
+      newAttributes.cardDraw += 1 * multiplier;
       break;
     case 'play':
-      // +0.5 card play (add 1 card play every two benefits)
-      // We'll track partial card plays in a separate game state
-      newAttributes.cardPlays += 0.5 * multiplier;
-      if (newAttributes.cardPlays % 1 !== 0) {
-        // Round down if needed
-        newAttributes.cardPlays = Math.floor(newAttributes.cardPlays);
+      // Add 0.5 to each partial benefit
+      newPartialBenefits.cardPlays += 0.5 * multiplier;
+      newPartialBenefits.cardDraw += 0.5 * multiplier;
+      newPartialBenefits.gold += 0.5 * multiplier;
+      
+      // Apply benefits when they reach whole numbers
+      if (newPartialBenefits.cardPlays >= 1) {
+        newAttributes.cardPlays += Math.floor(newPartialBenefits.cardPlays);
+        newPartialBenefits.cardPlays -= Math.floor(newPartialBenefits.cardPlays);
+      }
+      if (newPartialBenefits.cardDraw >= 1) {
+        newAttributes.cardDraw += Math.floor(newPartialBenefits.cardDraw);
+        newPartialBenefits.cardDraw -= Math.floor(newPartialBenefits.cardDraw);
+      }
+      if (newPartialBenefits.gold >= 1) {
+        newAttributes.gold += Math.floor(newPartialBenefits.gold);
+        newPartialBenefits.gold -= Math.floor(newPartialBenefits.gold);
       }
       break;
   }
   
-  return newAttributes;
+  return { playerAttributes: newAttributes, partialBenefits: newPartialBenefits };
 };
 
 // Apply card effect to a tile

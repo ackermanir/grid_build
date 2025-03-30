@@ -51,14 +51,10 @@ export const CARDS: Card[] = [
     shopNumber: 5,
     type: 'Gold',
     effects: { 
-      gold: 3,
-      conditional_effect: {
-        condition: 'land_type',
-        land_type: 'gold',
-        effects: { gold: 1 }
-      }
+      gold: 4,
+      special_effect: 'gold_rush'
     },
-    description: '+3 Gold. If played on Yellow land, +1 Gold'
+    description: '+4 Gold, +2 Gold at start of next turn'
   },
   {
     id: 'trading-post',
@@ -69,10 +65,10 @@ export const CARDS: Card[] = [
     type: 'Action',
     effects: { 
       gold: 1, 
-      buy: 1,
+      draw: 1,
       land_benefit: true
     },
-    description: '+1 Gold, +1 Buy, Land Benefit'
+    description: '+1 Gold, +1 Card, Land Benefit'
   },
   {
     id: 'supply-chain',
@@ -177,7 +173,7 @@ export const CARDS: Card[] = [
     id: 'archives',
     name: 'Archives',
     emoji: '📜',
-    cost: 3,
+    cost: 2,
     shopNumber: 5,
     type: 'Action',
     effects: { 

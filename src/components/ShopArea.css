@@ -7,6 +7,7 @@
   flex-direction: column;
   gap: 15px;
   height: 100%;
+  width: 800px;
 }
 
 .shop-header {
@@ -40,8 +41,8 @@
 
 .shop-cards {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 10px;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 15px;
   overflow-y: auto;
   max-height: 500px;
   flex-grow: 1;
@@ -50,13 +51,14 @@
 .shop-card {
   background-color: #2c3e50;
   border-radius: 8px;
-  padding: 8px;
+  padding: 10px;
   display: flex;
   flex-direction: column;
   transition: all 0.2s;
   position: relative;
   user-select: none;
-  font-size: 0.9em;
+  font-size: 1em;
+  min-width: 160px;
 }
 
 .shop-card.affordable {
@@ -99,28 +101,28 @@
 }
 
 .card-emoji {
-  font-size: 20px;
-  margin-bottom: 3px;
+  font-size: 24px;
+  margin-bottom: 4px;
 }
 
 .card-type {
   font-size: 12px;
   background-color: rgba(255, 255, 255, 0.1);
   border-radius: 4px;
-  padding: 2px 5px;
+  padding: 2px 6px;
   display: inline-block;
-  margin-bottom: 5px;
+  margin-bottom: 4px;
 }
 
 .card-description {
   font-size: 12px;
-  margin-bottom: 5px;
+  margin-bottom: 4px;
   font-style: italic;
   color: rgba(255, 255, 255, 0.8);
 }
 
 .card-effects {
-  font-size: 11px;
+  font-size: 13px;
   border-top: 1px solid rgba(255, 255, 255, 0.2);
-  padding-top: 5px;
+  padding-top: 6px;
 }

@@ -30,7 +30,9 @@ export const ShopArea: React.FC<ShopAreaProps> = ({
         </div>
       </div>
       <div className="shop-cards">
-        {shop.map(card => {
+        {shop
+          .sort((a, b) => a.cost - b.cost)
+          .map(card => {
           const affordable = canAfford(card);
           
           return (

@@ -28,7 +28,7 @@ export interface CardEffect {
     land_type?: LandType;
     effects: CardEffect;
   };
-  special_effect?: 'missile_dome' | 'archives' | 'stone_skin' | 'durable_defense';
+  special_effect?: 'missile_dome' | 'archives' | 'stone_skin' | 'durable_defense' | 'gold_rush';
 }
 
 export interface Card {
@@ -72,5 +72,11 @@ export interface GameState {
   specialState?: {
     type: 'missile_dome' | 'archives';
     data: any;
+  };
+  goldRushEffects?: number;
+  partialLandBenefits?: {
+    cardPlays: number;
+    cardDraw: number;
+    gold: number;
   };
 }

@@ -202,16 +202,26 @@ const App: React.FC = () => {
     } else if (card.effects.special_effect === 'stone_skin') {
       // Apply Stone Skin effect to all tiles that had cards played on them
       newGrid = applyStoneSkinEffect(newGrid, tileMap);
+    } else if (card.effects.special_effect === 'gold_rush') {
+      // Track gold rush effect for next turn
+      setGameState(prev => ({
+        ...prev!,
+        goldRushEffects: (prev!.goldRushEffects || 0) + 2
+      }));
     }
     
     // Apply land benefit if card has that effect
     const tile = gameState.grid[rowIndex][colIndex];
+    let newPartialBenefits = gameState.partialLandBenefits;
     if (card.effects.land_benefit) {
-      newPlayerState = applyLandBenefit(
+      const { playerAttributes, partialBenefits } = applyLandBenefit(
         tile.landType, 
         newPlayerState, 
-        card.effects.land_benefit_double
+        card.effects.land_benefit_double,
+        gameState.partialLandBenefits
       );
+      newPlayerState = playerAttributes;
+      newPartialBenefits = partialBenefits;
     }
     
     // Apply conditional effects based on land type
@@ -286,7 +296,8 @@ const App: React.FC = () => {
       selectedCard: null,
       gameOver,
       victory,
-      specialState
+      specialState,
+      partialLandBenefits: newPartialBenefits
     });
   };
 
@@ -452,7 +463,7 @@ const App: React.FC = () => {
       ...gameState.player,
       cardPlays: gameState.player.maxCardPlays,
       buys: gameState.player.maxBuys,
-      gold: 0,
+      gold: gameState.goldRushEffects || 0, // Apply gold rush effects
       wounds: newWoundsCount,
       cardDraw: nextCardDraw
     };
@@ -500,7 +511,9 @@ const App: React.FC = () => {
       gameOver,
       victory,
       specialState: undefined,
-      pendingAttacks
+      pendingAttacks,
+      goldRushEffects: undefined, // Reset gold rush effects
+      partialLandBenefits: undefined // Reset partial land benefits
     });
   };
 
