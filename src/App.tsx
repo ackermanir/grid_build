@@ -577,13 +577,29 @@ const App: React.FC = () => {
               playerAttributes={gameState.player}
               round={gameState.round}
             />
-            <GameBoard
-              grid={gameState.grid}
-              selectedCard={gameState.selectedCard}
-              onTileClick={handleCardPlacement}
-              pendingAttacks={gameState.pendingAttacks}
-              missileDomeSelection={missileDomeSelection}
-            />
+            <div className="game-play-area">
+              <GameBoard
+                grid={gameState.grid}
+                selectedCard={gameState.selectedCard}
+                onTileClick={handleCardPlacement}
+                pendingAttacks={gameState.pendingAttacks}
+                missileDomeSelection={missileDomeSelection}
+              />
+              <div className="side-panel">
+                <ShopArea
+                  shop={gameState.shop}
+                  gold={gameState.player.gold}
+                  buys={gameState.player.buys}
+                  onBuyCard={handleBuyCard}
+                />
+                <button 
+                  className="end-turn-button" 
+                  onClick={handleEndTurn}
+                >
+                  {cardSelectionMode === 'discard' ? 'Confirm Discards' : 'End Turn'}
+                </button>
+              </div>
+            </div>
             <HandArea
               hand={gameState.hand}
               selectedCard={gameState.selectedCard}
@@ -591,12 +607,6 @@ const App: React.FC = () => {
               selectionMode={cardSelectionMode}
               selectedForDiscard={gameState.specialState?.type === 'archives' ? gameState.specialState.data.discardedCards : []}
               cardPlays={gameState.player.cardPlays}
-            />
-            <ShopArea
-              shop={gameState.shop}
-              gold={gameState.player.gold}
-              buys={gameState.player.buys}
-              onBuyCard={handleBuyCard}
             />
           </>
         )}
