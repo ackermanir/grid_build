@@ -1,16 +1,14 @@
 import React from 'react';
 import './VersionDisplay.css';
+import { version, lastUpdated } from '../version';
 
-interface VersionDisplayProps {
-  version: string;
-  lastUpdated: string;
-}
-
-export const VersionDisplay: React.FC<VersionDisplayProps> = ({ version, lastUpdated }) => {
+const VersionDisplay: React.FC = () => {
   return (
     <div className="version-display">
-      <span className="version">v{version}</span>
-      <span className="last-updated">Updated: {lastUpdated}</span>
+      <div>Version: {version}</div>
+      <div>Last Updated: {lastUpdated}</div>
     </div>
   );
-}; 
+};
+
+export default VersionDisplay; 

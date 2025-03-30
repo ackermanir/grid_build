@@ -4,7 +4,7 @@ import { PlayerInfo } from './components/PlayerInfo';
 import { ShopArea } from './components/ShopArea';
 import { HandArea } from './components/HandArea';
 import { GameOver } from './components/GameOver';
-import { VersionDisplay } from './components/VersionDisplay';
+import VersionDisplay from './components/VersionDisplay';
 import { 
   initializeGameState, 
   drawCards, 
@@ -22,6 +22,7 @@ import { createWoundCard, getAllCards } from './data/cards';
 import { shuffleDeck } from './utils/cardUtils';
 import { GameState, Card, Tile } from './types';
 import './App.css';
+import { version, lastUpdated } from './version';
 
 const App: React.FC = () => {
   const [gameState, setGameState] = useState<GameState | null>(null);
@@ -30,10 +31,6 @@ const App: React.FC = () => {
     tilesSelected: [number, number][];
     tilesNeeded: number;
   } | null>(null);
-
-  // Version information
-  const version = '1.0.2';
-  const lastUpdated = new Date().toLocaleString();
 
   // Initialize game
   useEffect(() => {
@@ -568,56 +565,42 @@ const App: React.FC = () => {
 
   return (
     <div className="App">
-      <VersionDisplay version={version} lastUpdated={lastUpdated} />
-      <header className="App-header">
-        <h1>Grid Builder</h1>
-      </header>
       <div className="game-container">
-        <PlayerInfo 
-          playerAttributes={gameState.player} 
-          round={gameState.round} 
-        />
-        <div className="game-play-area">
-          <GameBoard 
-            grid={gameState.grid} 
-            selectedCard={gameState.selectedCard}
-            onTileClick={handleCardPlacement}
-            missileDomeSelection={missileDomeSelection}
-            pendingAttacks={gameState.pendingAttacks}
-          />
-          <div className="side-panel">
-            <ShopArea 
-              shop={gameState.shop} 
-              gold={gameState.player.gold}
-              buys={gameState.player.buys}
-              onBuyCard={handleBuyCard} 
-            />
-            <button 
-              className="end-turn-button" 
-              onClick={handleEndTurn}
-            >
-              {cardSelectionMode === 'discard' ? 'Confirm Discards' : 'End Turn'}
-            </button>
-          </div>
-        </div>
-        <HandArea 
-          hand={gameState.hand} 
-          selectedCard={gameState.selectedCard}
-          onCardSelect={handleCardSelect} 
-          cardPlays={gameState.player.cardPlays}
-          selectionMode={cardSelectionMode}
-          selectedForDiscard={
-            gameState.specialState?.type === 'archives' 
-              ? gameState.specialState.data.discardedCards || []
-              : []
-          }
-        />
-        {gameState.gameOver && (
+        {gameState.gameOver ? (
           <GameOver 
             victory={gameState.victory} 
             onNewGame={handleNewGame} 
           />
+        ) : (
+          <>
+            <PlayerInfo 
+              playerAttributes={gameState.player}
+              round={gameState.round}
+            />
+            <GameBoard
+              grid={gameState.grid}
+              selectedCard={gameState.selectedCard}
+              onTileClick={handleCardPlacement}
+              pendingAttacks={gameState.pendingAttacks}
+              missileDomeSelection={missileDomeSelection}
+            />
+            <HandArea
+              hand={gameState.hand}
+              selectedCard={gameState.selectedCard}
+              onCardSelect={handleCardSelect}
+              selectionMode={cardSelectionMode}
+              selectedForDiscard={gameState.specialState?.type === 'archives' ? gameState.specialState.data.discardedCards : []}
+              cardPlays={gameState.player.cardPlays}
+            />
+            <ShopArea
+              shop={gameState.shop}
+              gold={gameState.player.gold}
+              buys={gameState.player.buys}
+              onBuyCard={handleBuyCard}
+            />
+          </>
         )}
+        <VersionDisplay />
       </div>
     </div>
   );
