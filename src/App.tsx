@@ -175,7 +175,7 @@ const App: React.FC = () => {
     let newGrid = JSON.parse(JSON.stringify(gameState.grid)) as Tile[][];
     
     // Apply the basic card effect to the tile
-    const { grid: updatedGrid, tilesModified } = applyCardEffectToTile(
+    const { grid: updatedGrid } = applyCardEffectToTile(
       newGrid, 
       rowIndex, 
       colIndex, 
@@ -243,7 +243,11 @@ const App: React.FC = () => {
     // Apply land benefit if card has that effect
     const tile = gameState.grid[rowIndex][colIndex];
     let newPartialBenefits = gameState.partialLandBenefits;
+    let drawCount = 0; // Some land types can cause card draws
     if (card.effects.land_benefit) {
+      // Save player attributes before applying land benefit
+      const oldCardDraw = newPlayerState.cardDraw;
+      
       const { playerAttributes, partialBenefits } = applyLandBenefit(
         tile.landType, 
         newPlayerState, 
@@ -252,6 +256,11 @@ const App: React.FC = () => {
       );
       newPlayerState = playerAttributes;
       newPartialBenefits = partialBenefits;
+
+      // If card draw increased, add to draw count
+      if (newPlayerState.cardDraw > oldCardDraw) {
+        drawCount += newPlayerState.cardDraw - oldCardDraw;
+      }
     }
     
     // Apply conditional effects based on land type
@@ -288,18 +297,8 @@ const App: React.FC = () => {
     newDiscard.push(card);
     
     // Handle card draw effects
-    let drawCount = 0;
     if (card.effects.draw) {
       drawCount += card.effects.draw;
-    }
-    
-    // Add card draw from land benefit if applicable
-    if (card.effects.land_benefit) {
-      if (tile.landType === 'card') {
-        drawCount += 1 * (card.effects.land_benefit_double ? 2 : 1);
-      } else if (tile.landType === 'play' && (newPartialBenefits?.cardDraw ?? 0) >= 1) {
-        drawCount += Math.floor(newPartialBenefits?.cardDraw ?? 0);
-      }
     }
     
     // Add card draw from conditional effects if applicable
@@ -499,6 +498,11 @@ const App: React.FC = () => {
     let nextCardDraw = gameState.player.maxCardDraw;
     if (newWoundsCount >= 4) {
       nextCardDraw -= 1;
+    }
+    
+    // Add card draw from partial benefits if applicable
+    if (gameState.partialLandBenefits?.cardDraw && gameState.partialLandBenefits.cardDraw >= 1) {
+      nextCardDraw += Math.floor(gameState.partialLandBenefits.cardDraw);
     }
     
     // Reset player attributes for next turn
