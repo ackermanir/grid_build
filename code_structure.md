@@ -207,7 +207,7 @@ interface GameOverProps {
 - `initializeGameState()`: Sets up complete initial game state
 
 ### Card Utilities (`src/utils/cardUtils.ts`)
-- `parseCSVCards()`: Parses card definitions from CSV
+- `createCardInstance()`: Creates a unique instance of a card
 - `createInitialDeck()`: Creates starting deck
 - `shuffleDeck()`: Randomizes deck order
 - `drawCards()`: Handles card drawing mechanics
