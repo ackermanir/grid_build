@@ -41,7 +41,7 @@ interface CardEffect {
     land_type?: LandType;
     effects: CardEffect;
   };
-  special_effect?: 'missile_dome' | 'archives' | 'stone_skin' | 'durable_defense';
+  special_effect?: 'missile_dome' | 'archives' | 'stone_skin' | 'durable_defense' | 'gold_rush';
 }
 
 // Card representation
@@ -88,6 +88,12 @@ interface GameState {
   specialState?: {
     type: 'missile_dome' | 'archives';
     data: any;
+  };
+  goldRushEffects?: number;
+  partialLandBenefits?: {
+    card: number;
+    gold: number;
+    play: number;
   };
 }
 ```
@@ -158,7 +164,7 @@ interface GameOverProps {
 - `generatePendingAttacks()`: Determines enemy attacks based on round
 - `applyDamageToGrid()`: Processes damage to grid tiles
 - `resetGridForNewTurn()`: Resets grid state for new turn
-- `applyLandBenefit()`: Processes land type benefits
+- `applyLandBenefit()`: Processes land type benefits (including partial benefits)
 - `applyCardEffectToTile()`: Applies card effects to grid tiles
 - `checkGameOver()`: Checks victory/defeat conditions
 - `initializeGameState()`: Sets up complete initial game state
@@ -193,7 +199,7 @@ interface GameOverProps {
    - Select card from hand
    - Place on eligible grid tile
    - Apply card effects and land benefits
-   - Handle special effects (missile dome, archives, etc.)
+   - Handle special effects (missile dome, archives, gold rush, etc.)
 
 4. **Enemy Phase**
    - Generate pending attacks based on round
@@ -204,6 +210,8 @@ interface GameOverProps {
 - Uses React's useState for game state management
 - State updates are handled through immutable patterns
 - Special states (missile dome, archives) are managed separately
+- Partial land benefits are tracked between card plays
+- Gold rush effects are tracked for next turn
 
 ## Key Abstractions
 
@@ -216,12 +224,14 @@ interface GameOverProps {
    - Flexible effect system supporting various card types
    - Conditional effects based on land types
    - Special effects for unique card mechanics
+   - Partial benefits system for land effects
 
 3. **Resource Management**
    - Gold for purchasing cards
    - Card plays for playing cards
    - Buys for purchasing cards
    - Tech tier progression
+   - Partial benefits tracking
 
 4. **Combat System**
    - Enemy attacks scale with rounds
@@ -239,6 +249,7 @@ interface GameOverProps {
    - Immutable state updates
    - Clear state transitions
    - Separation of concerns
+   - Proper tracking of partial benefits
 
 3. **Component Design**
    - Presentational components
@@ -248,4 +259,5 @@ interface GameOverProps {
 4. **Game Logic**
    - Centralized game rules
    - Clear victory/defeat conditions
-   - Modular effect system 
+   - Modular effect system
+   - Consistent benefit application 
