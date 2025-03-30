@@ -37,14 +37,25 @@ A deck building game similar to Spirit Island and Dominion, with a grid-based pl
 
 3. Open your browser at `http://localhost:3000`
 
-### Production Build
+### Production Build and Deployment
 
 1. Build for production:
    ```
    npm run build
    ```
 
-2. Deploy the contents of the `build` directory to your hosting service
+2. Deploy to GitHub Pages:
+   ```
+   npm run deploy:patch
+   ```
+   This command will:
+   - Automatically increment the patch version (e.g., 0.1.0 → 0.1.1)
+   - Build the project
+   - Deploy to GitHub Pages
+   - Create a Git tag for the version
+   - Push changes to the repository
+
+   The site will be available at: https://acker.github.io/grid_build
 
 ## Technologies Used
 

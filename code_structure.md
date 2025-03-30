@@ -3,6 +3,43 @@
 ## Project Overview
 Grid Build is a deck-building game built with React and TypeScript, featuring a 3x3 grid-based play area, resource management, and tech tier progression. The game combines elements from Spirit Island and Dominion.
 
+## Deployment and Version Management
+
+### Automated Deployment Process
+The project uses npm scripts to automate the deployment process:
+
+```json
+{
+  "scripts": {
+    "deploy:patch": "npm version patch && npm run deploy",
+    "version": "git add -A src",
+    "postversion": "git push && git push --tags",
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d build"
+  }
+}
+```
+
+#### Deployment Steps
+1. Run `npm run deploy:patch` to:
+   - Increment the patch version (e.g., 0.1.0 → 0.1.1)
+   - Stage and commit changes
+   - Create a Git tag
+   - Push changes and tags to GitHub
+   - Build the project
+   - Deploy to GitHub Pages
+
+#### Version Bumping Options
+- `npm version patch`: Small fixes (0.1.0 → 0.1.1)
+- `npm version minor`: New features (0.1.0 → 0.2.0)
+- `npm version major`: Breaking changes (0.1.0 → 1.0.0)
+
+### Deployment Configuration
+- The project is configured to deploy to GitHub Pages
+- Homepage is set to: https://acker.github.io/grid_build
+- Build output is served from the `build` directory
+- Version information is displayed in the game UI
+
 ## Core Types and Interfaces
 
 ### Game State Types
