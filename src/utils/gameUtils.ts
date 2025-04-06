@@ -400,6 +400,8 @@ export const initializeGameState = (): GameState => {
     selectedCard: null,
     gameOver: false,
     victory: false,
-    pendingAttacks
+    pendingAttacks,
+    buildingToPlace: null,
+    techTierJustReached: null,
   };
 };

@@ -1,4 +1,4 @@
-import { Card, CardType, CardEffect, LandType } from '../types';
+import { Card /*, CardType, CardEffect, LandType*/ } from '../types';
 
 // Create a new instance of a card with a unique ID
 export const createCardInstance = (card: Card, index: number): Card => {

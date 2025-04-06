@@ -5,11 +5,13 @@ import './PlayerInfo.css';
 interface PlayerInfoProps {
   playerAttributes: PlayerAttributes;
   round: number;
+  onEndTurn: () => void;
 }
 
 export const PlayerInfo: React.FC<PlayerInfoProps> = ({ 
   playerAttributes, 
-  round 
+  round, 
+  onEndTurn 
 }) => {
   return (
     <div className="player-info">
@@ -61,6 +63,14 @@ export const PlayerInfo: React.FC<PlayerInfoProps> = ({
           </span>
         </div>
       </div>
+      
+      <button 
+        className="end-turn-button" 
+        onClick={onEndTurn} 
+        data-testid="end-turn-button"
+      >
+        End Turn / Attack Phase
+      </button>
     </div>
   );
 };

@@ -49,6 +49,7 @@ export const HandArea: React.FC<HandAreaProps> = ({
           return (
             <div
               key={card.id}
+              data-testid={`hand-card-${card.name}`}
               className={`hand-card ${isSelected ? 'selected' : ''} ${isPlayable ? 'playable' : 'unplayable'}`}
               onClick={() => isPlayable && onCardSelect(card)}
             >

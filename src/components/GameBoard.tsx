@@ -74,6 +74,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
             return (
               <div
                 key={`tile-${rowIndex}-${colIndex}`}
+                data-testid={`tile-${rowIndex}-${colIndex}`}
                 className={`board-tile ${landClass} 
                            ${isEligible ? 'eligible' : ''} 
                            ${isSelectedForMissileDome ? 'missile-dome-selected' : ''} 

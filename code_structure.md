@@ -326,4 +326,42 @@ interface TechUpgradeModalProps {
    - Centralized game rules
    - Clear victory/defeat conditions
    - Modular effect system
-   - Consistent benefit application 
+   - Consistent benefit application
+
+## Integration Testing
+
+Integration tests are implemented to verify core game scenarios and logic flow by simulating user interactions and asserting the resulting game state or UI changes.
+
+### Framework and Tools
+- **Test Runner/Assertions:** [Jest](https://jestjs.io/)
+- **Component Interaction/Querying:** [React Testing Library (RTL)](https://testing-library.com/docs/react-testing-library/intro/)
+- **User Event Simulation:** `@testing-library/user-event` (Provides more realistic event simulation than RTL's `fireEvent`).
+- **TypeScript Integration:** `ts-jest` (Used under the hood by `react-scripts`).
+
+### Directory Structure
+- Integration tests reside in `src/tests/integration/`.
+- Test files typically follow the pattern `*.test.tsx` (Note: `.tsx` extension is currently required due to a workaround).
+
+### Test Execution
+- Tests are run using the standard Create React App script:
+  ```bash
+  npm test
+  ```
+  This uses `react-scripts test`, which configures and runs Jest internally.
+
+### Helper Utilities (`src/tests/testUtils.tsx`)
+A dedicated utility file provides functions to streamline test creation:
+- **`setupTestGame(initialStateOverrides)`:** Renders the main `<App />` component with a specified initial `GameState`. It relies on the `initialTestState` and `onStateUpdateForTest` props added to `App.tsx` solely for testing purposes. Returns RTL's render result and a `getGameState()` function to access the component's current state.
+- **Simulation Helpers (`simulatePlayCardFromHand`, `simulateTileClick`, `simulateEndTurn`, etc.):** Use `userEvent` to interact with the rendered components (clicking cards, tiles, buttons) based on `data-testid` attributes.
+- **Assertion Helpers (`assertPlayerState`, `assertTileState`, `assertHandContains`, etc.):** Provide focused comparisons of specific parts of the `GameState` or component state/UI to avoid brittle tests.
+
+### Test Structure
+Tests generally follow the Arrange-Act-Assert pattern:
+1.  **Arrange:** Set up the initial game state using `setupTestGame` with necessary overrides (hand, grid, player attributes).
+2.  **Act:** Simulate user actions using the simulation helper functions (e.g., `simulatePlayCardFromHand`, `simulateTileClick`).
+3.  **Assert:** Retrieve the final game state using `getGameState()` and use assertion helpers or direct `expect` calls to verify the expected outcome (e.g., player gold, tile defense, hand contents).
+
+### Important Implementation Details
+- **`data-testid` Attributes:** Key interactive elements (tiles, cards in hand/shop, buttons) require stable `data-testid` attributes for reliable selection in tests.
+- **`App.tsx` Modifications:** The `App` component accepts optional props (`initialTestState`, `onStateUpdateForTest`) used *only* during testing to inject state and allow tests to monitor state changes.
+- **Import Workaround:** Test files currently need to import `testUtils.tsx` using the explicit `.tsx` extension (e.g., `import { setupTestGame } from '../testUtils.tsx';`). This is a workaround for issues encountered with `react-scripts test`'s transformation pipeline. A `// @ts-expect-error` comment is used to suppress the associated TypeScript linter warning. 

@@ -1,0 +1,26 @@
+module.exports = {
+  testEnvironment: 'jsdom', // Use jsdom for React component testing
+  setupFilesAfterEnv: ['<rootDir>/src/setupTests.ts'], // Optional setup file
+  // Explicitly list file extensions Jest should handle
+  moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'], 
+  moduleNameMapper: {
+    // Handle CSS Modules, images, etc. if needed
+    '\\.(css|less|scss|sass)$': 'identity-obj-proxy',
+  },
+  // Rely solely on the explicit transform rule
+  transform: {
+    '^.+\\.tsx?$': [
+      'ts-jest',
+      {
+        tsconfig: 'tsconfig.json',
+        babelConfig: false, // Keep Babel disabled
+        diagnostics: false, // Keep diagnostics off
+      }
+    ]
+  },
+  // Optional: Add transformIgnorePatterns to ensure node_modules aren't transformed
+  transformIgnorePatterns: [
+     '/node_modules/',
+     '\\.pnp\\.[^\\/]+$'
+  ],
+}; 
