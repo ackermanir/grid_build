@@ -498,16 +498,36 @@ const App: React.FC = () => {
     
     // Handle tech upgrade cards immediately
     if (card.type === 'Tech' && card.effects.tech) {
+      const currentTechTier = gameState.player.techTier;
+      const newTechTier = card.effects.tech;
+      let buildingToPlace: BuildingType | null = null;
+      let techTierJustReached: number | null = null;
+
+      if (newTechTier > currentTechTier) {
+        techTierJustReached = newTechTier;
+        // Determine building based on the tier reached
+        if (newTechTier === 2) buildingToPlace = 'Resource Depot';
+        else if (newTechTier === 3) {
+           buildingToPlace = 'Refinery';
+           // TODO: Handle base card upgrades + shop refresh when buying Tier 3 card?
+           // This is tricky because the upgrades should ideally happen immediately,
+           // but the current upgrade logic is tied to handleCardPlacement.
+           // For now, we'll just set the building flag. Need to refactor later.
+           console.warn("Tier 3 card bought - Base card upgrades need refactoring to apply here.");
+        } 
+        else if (newTechTier === 4) buildingToPlace = 'Echo Chamber';
+      }
+
       // Update player state with tech upgrade
       const newPlayerState = {
         ...gameState.player,
         gold: gameState.player.gold - card.cost,
         buys: gameState.player.buys - 1,
-        techTier: card.effects.tech
+        techTier: newTechTier
       };
       
       // Update shop with new cards based on tech tier
-      const newShop = generateShopCards(card.effects.tech);
+      const newShop = generateShopCards(newTechTier);
       
       // Check for game over conditions
       const { gameOver, victory } = checkGameOver({
@@ -521,7 +541,9 @@ const App: React.FC = () => {
         shop: newShop,
         player: newPlayerState,
         gameOver,
-        victory
+        victory,
+        buildingToPlace,
+        techTierJustReached
       });
       
       return;
