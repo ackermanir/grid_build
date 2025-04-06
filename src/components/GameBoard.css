@@ -143,6 +143,11 @@
   z-index: 2;
 }
 
+.building-eligible {
+  cursor: pointer;
+  box-shadow: 0 0 10px 3px lightgreen;
+}
+
 @keyframes pulse {
   0% {
     transform: scale(1);

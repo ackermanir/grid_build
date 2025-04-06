@@ -757,6 +757,7 @@ const App: React.FC = () => {
                 onTileClick={handleCardPlacement}
                 pendingAttacks={gameState.pendingAttacks}
                 missileDomeSelection={missileDomeSelection}
+                buildingToPlace={gameState.buildingToPlace}
               />
               <div className="side-panel">
                 <ShopArea

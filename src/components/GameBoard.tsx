@@ -1,11 +1,12 @@
 import React from 'react';
-import { Tile, Card } from '../types';
+import { Tile, Card, BuildingType } from '../types';
 import './GameBoard.css';
 
 interface GameBoardProps {
   grid: Tile[][];
   selectedCard: Card | null;
   onTileClick: (rowIndex: number, colIndex: number) => void;
+  buildingToPlace?: BuildingType | null;
   missileDomeSelection?: {
     tilesSelected: [number, number][];
     tilesNeeded: number;
@@ -21,6 +22,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
   selectedCard, 
   onTileClick,
   missileDomeSelection = null,
+  buildingToPlace = null,
   pendingAttacks
 }) => {
   // Determine if a tile is eligible for card placement
@@ -62,11 +64,23 @@ export const GameBoard: React.FC<GameBoardProps> = ({
               ([r, c]) => r === rowIndex && c === colIndex
             );
             
+            // Determine if the tile is clickable
+            const canPlaceBuilding = buildingToPlace && !tile.building;
+            const canSelectMissileDome = isSelectedForMissileDome; // Can click already selected to potentially deselect later?
+            const canPlayCard = isEligible; // Check if eligible for card play
+
+            const isClickable = canPlaceBuilding || canSelectMissileDome || canPlayCard;
+
             return (
               <div
                 key={`tile-${rowIndex}-${colIndex}`}
-                className={`board-tile ${landClass} ${isEligible ? 'eligible' : ''} ${isSelectedForMissileDome ? 'missile-dome-selected' : ''} ${hasPendingAttack ? 'pending-attack' : ''}`}
-                onClick={() => (isEligible || isSelectedForMissileDome) && onTileClick(rowIndex, colIndex)}
+                className={`board-tile ${landClass} 
+                           ${isEligible ? 'eligible' : ''} 
+                           ${isSelectedForMissileDome ? 'missile-dome-selected' : ''} 
+                           ${hasPendingAttack ? 'pending-attack' : ''}
+                           ${canPlaceBuilding ? 'building-eligible' : ''} // Add class for visual feedback
+                          `}
+                onClick={() => isClickable && onTileClick(rowIndex, colIndex)} // Updated click condition
               >
                 {/* Land type indicator */}
                 <div className="land-type">
