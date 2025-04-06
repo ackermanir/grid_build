@@ -86,21 +86,21 @@ export const generateShopCards = (techTier: number): Card[] => {
   );
   
   techCards.forEach(card => {
-    // Tech cards have quantity 1
+    // Use shopNumber for initial quantity (should be 1 for tech upgrades)
     selectedCards.push({...card, 
                          id: `shop-${card.name.toLowerCase().replace(/\s+/g, '-')}`,
-                         quantity: 1 
+                         quantity: card.shopNumber // Use shopNumber from base definition
                         });
   });
   
   // Then add ALL regular cards (not just a subset)
   const regularCards = availableCards.filter(card => card.type !== 'Tech');
   
-  // Add all regular cards with unique IDs and quantity (e.g., 10)
+  // Add all regular cards with unique IDs and quantity based on shopNumber
   regularCards.forEach((card, i) => {
     selectedCards.push({...card, 
                          id: `shop-${card.name.toLowerCase().replace(/\s+/g, '-')}-${i}`,
-                         quantity: 10 // Default quantity for regular cards
+                         quantity: card.shopNumber // Use shopNumber from base definition
                         });
   });
   
