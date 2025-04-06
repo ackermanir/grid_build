@@ -19,8 +19,9 @@ import {
   generatePendingAttacks
 } from './utils/gameUtils';
 import { createWoundCard, getAllCards } from './data/cards';
-import { shuffleDeck } from './utils/cardUtils';
-import { GameState, Card, Tile } from './types';
+import { shuffleDeck, upgradeBaseCards } from './utils/cardUtils';
+import { GameState, Card, Tile, BuildingType } from './types';
+import TechUpgradeModal from './components/TechUpgradeModal';
 import './App.css';
 import { version, lastUpdated } from './version';
 
@@ -102,8 +103,34 @@ const App: React.FC = () => {
     }
   };
 
-  // Handle card placement on grid
+  // Handle card placement on grid OR building placement
   const handleCardPlacement = (rowIndex: number, colIndex: number) => {
+    // Check if we are in building placement mode
+    if (gameState.buildingToPlace) {
+      const newGrid = JSON.parse(JSON.stringify(gameState.grid)) as Tile[][];
+      
+      // Check if a building already exists on this tile
+      if (newGrid[rowIndex][colIndex].building) {
+        console.log('Building already exists on this tile');
+        // Optionally provide user feedback here (e.g., toast message)
+        return; 
+      }
+
+      // Place the building
+      newGrid[rowIndex][colIndex].building = gameState.buildingToPlace;
+      
+      // Update state: place building and clear placement flags
+      setGameState(prev => ({
+        ...prev!,
+        grid: newGrid,
+        buildingToPlace: null,
+        techTierJustReached: null // Clear this as the action is complete
+      }));
+      
+      console.log(`Placed ${gameState.buildingToPlace} at [${rowIndex}, ${colIndex}]`);
+      return; // Exit after placing building
+    }
+
     console.log('handleCardPlacement called with selectedCard:', gameState.selectedCard?.name);
     // Handle missile dome selection mode
     if (missileDomeSelection) {
@@ -171,174 +198,235 @@ const App: React.FC = () => {
     // Track tiles that have cards played on them in this turn
     const tileMap = new Map<string, boolean>();
     
-    // Create a deep copy of the grid
-    let newGrid = JSON.parse(JSON.stringify(gameState.grid)) as Tile[][];
-    
-    // Apply the basic card effect to the tile
-    const { grid: updatedGrid } = applyCardEffectToTile(
-      newGrid, 
-      rowIndex, 
-      colIndex, 
-      card,
-      tileMap
-    );
-    
-    newGrid = updatedGrid;
-    
-    // Calculate effects from the card
-    let newPlayerState = { ...gameState.player };
-    
-    // Decrease card plays
-    newPlayerState.cardPlays -= 1;
-    
-    // Apply card effects
-    if (card.effects.gold) {
-      newPlayerState.gold += card.effects.gold;
-    }
-    
-    if (card.effects.buy) {
-      newPlayerState.buys += card.effects.buy;
-    }
-    
-    if (card.effects.card_play) {
-      newPlayerState.cardPlays += card.effects.card_play;
-    }
-    
-    if (card.effects.tech) {
-      newPlayerState.techTier = card.effects.tech;
-      if (newPlayerState.techTier > 5) {
-        newPlayerState.techTier = 5;
-      }
-    }
-    
-    // Handle special effects
-    let specialState = gameState.specialState;
-    
-    if (card.effects.special_effect === 'missile_dome') {
-      // Enter missile dome selection mode - handled by a different function
-      setMissileDomeSelection({
-        tilesSelected: [[rowIndex, colIndex]], // The initial tile is already selected
-        tilesNeeded: 2 // Missile dome defends 2 tiles
-      });
-    } else if (card.effects.special_effect === 'archives') {
-      // Enter archives mode - discard and draw
-      specialState = {
-        type: 'archives',
-        data: {
-          discardedCards: []
-        }
-      };
-      setCardSelectionMode('discard');
-    } else if (card.effects.special_effect === 'stone_skin') {
-      // Apply Stone Skin effect to all tiles that had cards played on them
-      newGrid = applyStoneSkinEffect(newGrid, tileMap);
-    } else if (card.effects.special_effect === 'gold_rush') {
-      // Track gold rush effect for next turn
-      setGameState(prev => ({
-        ...prev!,
-        goldRushEffects: (prev!.goldRushEffects || 0) + 2
-      }));
-    }
-    
-    // Apply land benefit if card has that effect
-    const tile = gameState.grid[rowIndex][colIndex];
-    let newPartialBenefits = gameState.partialLandBenefits;
-    let drawCount = 0; // Some land types can cause card draws
-    if (card.effects.land_benefit) {
-      // Save player attributes before applying land benefit
-      const oldCardDraw = newPlayerState.cardDraw;
-      
-      const { playerAttributes, partialBenefits } = applyLandBenefit(
-        tile.landType, 
-        newPlayerState, 
-        card.effects.land_benefit_double,
-        gameState.partialLandBenefits
-      );
-      newPlayerState = playerAttributes;
-      newPartialBenefits = partialBenefits;
+    // Create a deep copy of the grid and player state for effect application
+    let tempGrid = JSON.parse(JSON.stringify(gameState.grid)) as Tile[][];
+    let tempPlayerState = { ...gameState.player };
+    let tempPartialBenefits = gameState.partialLandBenefits ? { ...gameState.partialLandBenefits } : { cardPlays: 0, cardDraw: 0, gold: 0 };
+    let tempSpecialState = gameState.specialState; // Copy special state reference
+    let tempHand = [...gameState.hand]; // Track hand within loop
+    let tempDeck = [...gameState.deck]; // Track deck within loop
+    let tempDiscard = [...gameState.discard]; // Track discard within loop
+    let tempShop = [...gameState.shop]; // Track shop within loop
+    let totalDrawCount = 0;
+    let accumulatedGoldRush = gameState.goldRushEffects || 0;
 
-      // If card draw increased, add to draw count
-      if (newPlayerState.cardDraw > oldCardDraw) {
-        drawCount += newPlayerState.cardDraw - oldCardDraw;
+    // Determine number of times to apply effect (1 normally, 2 for Echo Chamber)
+    const applyTimes = tempGrid[rowIndex][colIndex].building === 'Echo Chamber' ? 2 : 1;
+    console.log(`Applying card effects ${applyTimes} times.`);
+
+    for (let i = 0; i < applyTimes; i++) {
+      console.log(`Applying effect iteration ${i + 1}`);
+      // Apply the basic card effect to the tile (only visual update on first pass?)
+      // Or should this be inside? If card applies defense, does it double?
+      // Let's assume visual only happens once, but effect logic happens multiple times.
+      // We'll apply the *effects* multiple times, but place the card visually once.
+      if (i === 0) {
+        const { grid: updatedGrid } = applyCardEffectToTile(
+          tempGrid, 
+          rowIndex, 
+          colIndex, 
+          card,
+          tileMap // tileMap needs to persist across iterations?
+        );
+        tempGrid = updatedGrid;
+      }
+      
+      // Calculate effects from the card for this iteration
+      let iterationDrawCount = 0; // Draw count for this specific iteration
+      
+      // Decrease card plays (only on the first iteration!)
+      if (i === 0) {
+         tempPlayerState.cardPlays -= 1;
+      }
+      
+      // Apply card effects (gold, draw, buy, etc.)
+      const tileHasResourceDepot = tempGrid[rowIndex][colIndex].building === 'Resource Depot';
+
+      if (card.effects.gold) {
+        let goldToAdd = card.effects.gold;
+        if (tileHasResourceDepot) {
+          goldToAdd += 1;
+        }
+        tempPlayerState.gold += goldToAdd;
+      }
+      
+      if (card.effects.draw) {
+        let drawToAdd = card.effects.draw;
+        if (tileHasResourceDepot) {
+          drawToAdd += 1;
+        }
+        iterationDrawCount += drawToAdd;
+      }
+
+      if (card.effects.buy) {
+        tempPlayerState.buys += card.effects.buy;
+      }
+      
+      if (card.effects.card_play) {
+        tempPlayerState.cardPlays += card.effects.card_play;
+      }
+      
+      // Tech upgrades happen only once, when the card is played, not duplicated
+      let iterationBuildingToPlace: BuildingType | null = null;
+      let iterationTechTierJustReached: number | null = null;
+      if (i === 0 && card.effects.tech) { 
+        const currentTechTier = tempPlayerState.techTier;
+        const newTechTier = card.effects.tech;
+        
+        if (newTechTier > currentTechTier) {
+          iterationTechTierJustReached = newTechTier;
+          tempPlayerState.techTier = Math.min(newTechTier, 5);
+          
+          if (newTechTier === 2) iterationBuildingToPlace = 'Resource Depot';
+          else if (newTechTier === 3) {
+            iterationBuildingToPlace = 'Refinery';
+            // --- Upgrade Base Cards --- 
+            console.log('Upgrading base cards for Tier 3');
+            tempHand = upgradeBaseCards(tempHand);
+            tempDeck = upgradeBaseCards(tempDeck);
+            tempDiscard = upgradeBaseCards(tempDiscard);
+            // --- End Base Card Upgrade ---
+            // Refresh shop for Tier 3
+            console.log('Refreshing shop for Tier 3');
+            tempShop = generateShopCards(3); // Use tempShop variable
+          }
+          else if (newTechTier === 4) iterationBuildingToPlace = 'Echo Chamber';
+        }
+      }
+      
+      // Apply land benefit if card has that effect
+      const currentTile = tempGrid[rowIndex][colIndex];
+      if (card.effects.land_benefit) {
+        const oldCardDraw = tempPlayerState.cardDraw;
+        const { playerAttributes, partialBenefits } = applyLandBenefit(
+          currentTile.landType, 
+          tempPlayerState,
+          card.effects.land_benefit_double,
+          tempPartialBenefits // Pass the current partial benefits
+        );
+        tempPlayerState = playerAttributes;
+        tempPartialBenefits = partialBenefits;
+
+        if (tempPlayerState.cardDraw > oldCardDraw) {
+          iterationDrawCount += tempPlayerState.cardDraw - oldCardDraw;
+        }
+      }
+
+      // Apply conditional effects
+      if (card.effects.conditional_effect) {
+        if (card.effects.conditional_effect.condition === 'land_type' && 
+            card.effects.conditional_effect.land_type === currentTile.landType) {
+          if (card.effects.conditional_effect.effects.gold) {
+            tempPlayerState.gold += card.effects.conditional_effect.effects.gold;
+          }
+          // Add other conditional effects here
+        }
+      }
+      
+      // --- Handle Special Effects (Need careful thought for duplication) ---
+      // Missile Dome: Should likely only trigger once. Place selection state outside loop.
+      // Archives: Needs careful handling. Maybe process discard/draw twice successively?
+      // Stone Skin: Apply to tiles played on *this* turn. Maybe apply outside loop?
+      // Gold Rush: Accumulate the effect. +2 per application.
+
+      if (card.effects.special_effect === 'missile_dome' && i === 0) {
+        setMissileDomeSelection({
+          tilesSelected: [[rowIndex, colIndex]],
+          tilesNeeded: 2 
+        });
+      } else if (card.effects.special_effect === 'archives') {
+        // For Echo Chamber, this needs to happen twice.
+        const activationsNeeded = applyTimes; // Will be 2 if Echo Chamber, 1 otherwise
+        if (tempSpecialState?.type === 'archives') {
+          // If already in archives state (e.g., second Echo Chamber activation)
+          tempSpecialState.data.remainingActivations += activationsNeeded;
+        } else {
+          // Start archives state
+          tempSpecialState = { 
+            type: 'archives', 
+            data: { 
+              discardedCards: [],
+              remainingActivations: activationsNeeded,
+              initialActivations: activationsNeeded // Store how many activations started
+            } 
+          };
+          setCardSelectionMode('discard'); // Enter discard mode only on first activation
+        }
+      } else if (card.effects.special_effect === 'stone_skin' && i === 0) {
+         // Apply stone skin once after all effects resolve.
+         // Requires tracking tiles modified outside the loop.
+      } else if (card.effects.special_effect === 'gold_rush') {
+         accumulatedGoldRush += 2;
+      }
+      
+      // Accumulate total draw count across iterations
+      totalDrawCount += iterationDrawCount;
+
+      // --- Tech tier state needs to be set outside the loop based on first iteration ---
+      // buildingToPlace = iterationBuildingToPlace; 
+      // techTierJustReached = iterationTechTierJustReached;
+
+    } // End of effect application loop
+
+    // --- Post-loop updates ---
+    
+    // Apply Stone Skin if needed (apply to final grid state)
+    if (card.effects.special_effect === 'stone_skin') {
+      tempGrid = applyStoneSkinEffect(tempGrid, tileMap);
+    }
+
+    // Resolve tech tier state based on first pass (if it happened)
+    let finalBuildingToPlace: BuildingType | null = null;
+    let finalTechTierJustReached: number | null = null;
+    if (card.effects.tech) { 
+      const currentTechTier = gameState.player.techTier; // Check original state
+      const newTechTier = card.effects.tech;
+      if (newTechTier > currentTechTier) {
+        finalTechTierJustReached = newTechTier;
+        if (newTechTier === 2) finalBuildingToPlace = 'Resource Depot';
+        else if (newTechTier === 3) finalBuildingToPlace = 'Refinery';
+        else if (newTechTier === 4) finalBuildingToPlace = 'Echo Chamber';
       }
     }
-    
-    // Apply conditional effects based on land type
-    if (card.effects.conditional_effect && 
-        card.effects.conditional_effect.condition === 'land_type' &&
-        card.effects.conditional_effect.land_type === tile.landType) {
+
+    // Update game state using the final calculated states
+    setGameState(prev => {
+      if (!prev) return null;
       
-      if (card.effects.conditional_effect.effects.gold) {
-        newPlayerState.gold += card.effects.conditional_effect.effects.gold;
+      let finalHand = tempHand.filter(c => c.id !== card.id);
+      let finalDeck = tempDeck;
+      let finalDiscard = [...tempDiscard, card];
+
+      // Draw accumulated cards
+      if (totalDrawCount > 0) {
+        const drawResult = drawCards(finalDeck, finalDiscard, totalDrawCount);
+        finalHand = [...finalHand, ...drawResult.drawnCards];
+        finalDeck = drawResult.newDeck;
+        finalDiscard = drawResult.newDiscard;
       }
       
-      if (card.effects.conditional_effect.effects.draw) {
-        // Will handle card drawing later
+      let updatedState: Partial<GameState> = {};
+      if (finalTechTierJustReached !== null) {
+        updatedState.techTierJustReached = finalTechTierJustReached;
+        updatedState.buildingToPlace = finalBuildingToPlace;
+        // If tier 3 was reached, update the shop in the final state
+        if (finalTechTierJustReached === 3) {
+          updatedState.shop = tempShop; 
+        }
       }
-    }
-    
-    // Handle card drawing effects
-    let newHand = [...gameState.hand];
-    let newDeck = [...gameState.deck];
-    let newDiscard = [...gameState.discard];
-    
-    console.log('Hand before card removal:', newHand.map(c => c.name));
-    
-    // Find the index of the first matching card
-    const cardIndex = newHand.findIndex(c => c.id === card.id);
-    if (cardIndex !== -1) {
-      // Remove the card at the found index
-      newHand.splice(cardIndex, 1);
-    }
-    
-    console.log('Hand after card removal:', newHand.map(c => c.name));
-    
-    // Add the played card to the discard pile
-    newDiscard.push(card);
-    
-    // Handle card draw effects
-    if (card.effects.draw) {
-      drawCount += card.effects.draw;
-    }
-    
-    // Add card draw from conditional effects if applicable
-    if (card.effects.conditional_effect && 
-        card.effects.conditional_effect.condition === 'land_type' &&
-        card.effects.conditional_effect.land_type === tile.landType &&
-        card.effects.conditional_effect.effects.draw) {
-      
-      drawCount += card.effects.conditional_effect.effects.draw;
-    }
-    
-    // Draw cards if needed
-    if (drawCount > 0) {
-      const { drawnCards, newDeck: updatedDeck, newDiscard: updatedDiscard } = 
-        drawCards(newDeck, newDiscard, drawCount);
-      
-      newHand = [...newHand, ...drawnCards];
-      newDeck = updatedDeck;
-      newDiscard = updatedDiscard;
-    }
-    
-    // Check for game over conditions
-    const { gameOver, victory } = checkGameOver({
-      ...gameState,
-      player: newPlayerState
-    });
-    
-    // Update game state
-    setGameState({
-      ...gameState,
-      grid: newGrid,
-      hand: newHand,
-      deck: newDeck,
-      discard: newDiscard,
-      player: newPlayerState,
-      selectedCard: null,
-      gameOver,
-      victory,
-      specialState,
-      partialLandBenefits: newPartialBenefits
+
+      return {
+        ...prev,
+        grid: tempGrid, // Use the grid potentially modified by stone skin
+        hand: finalHand,
+        deck: finalDeck,
+        discard: finalDiscard,
+        player: tempPlayerState, // Use the state after all iterations
+        specialState: tempSpecialState, // Use potentially updated special state
+        partialLandBenefits: tempPartialBenefits, // Use final partial benefits
+        goldRushEffects: accumulatedGoldRush > 0 ? accumulatedGoldRush : undefined,
+        ...updatedState
+      };
     });
   };
 
@@ -346,8 +434,10 @@ const App: React.FC = () => {
   const handleArchivesComplete = () => {
     if (gameState.specialState?.type !== 'archives') return;
     
-    const discardedCards = gameState.specialState.data.discardedCards || [];
+    const { discardedCards = [], remainingActivations, initialActivations } = gameState.specialState.data;
     
+    console.log(`Archives complete: ${discardedCards.length} cards discarded. Remaining activations: ${remainingActivations - 1}`);
+
     // Move discarded cards to discard pile
     let newHand = [...gameState.hand];
     let newDiscard = [...gameState.discard];
@@ -364,17 +454,39 @@ const App: React.FC = () => {
     const { drawnCards, newDeck, newDiscard: updatedDiscard } = 
       drawCards(gameState.deck, newDiscard, discardedCards.length);
     
+    // Check if more activations are needed (e.g., Echo Chamber)
+    const nextRemainingActivations = remainingActivations - 1;
+    let nextSpecialState: GameState['specialState'] = undefined;
+    let nextCardSelectionMode: 'play' | 'discard' | null = null;
+
+    if (nextRemainingActivations > 0) {
+      // Re-enter Archives state for the next activation
+      console.log('Re-activating Archives effect...');
+      nextSpecialState = {
+        type: 'archives',
+        data: {
+          discardedCards: [], // Reset for next discard selection
+          remainingActivations: nextRemainingActivations,
+          initialActivations: initialActivations
+        }
+      };
+      nextCardSelectionMode = 'discard'; // Stay in discard mode
+    } else {
+      // All activations complete, exit discard mode
+      nextCardSelectionMode = null;
+    }
+    
     // Update game state
     setGameState({
       ...gameState,
       hand: [...newHand, ...drawnCards],
       deck: newDeck,
       discard: updatedDiscard,
-      specialState: undefined
+      specialState: nextSpecialState
     });
     
-    // Exit discard mode
-    setCardSelectionMode(null);
+    // Update card selection mode separately
+    setCardSelectionMode(nextCardSelectionMode);
   };
 
   // Handle buying a card from the shop
@@ -506,7 +618,7 @@ const App: React.FC = () => {
     }
     
     // Reset player attributes for next turn
-    const newPlayerState = {
+    let newPlayerState = {
       ...gameState.player,
       cardPlays: gameState.player.maxCardPlays,
       buys: gameState.player.maxBuys,
@@ -533,8 +645,31 @@ const App: React.FC = () => {
     newDiscard = drawResult.newDiscard;
     
     // Reset grid for new turn
-    const newGrid = resetGridForNewTurn(damagedGrid);
+    let newGrid = resetGridForNewTurn(damagedGrid);
     
+    // --- Apply Refinery effects at the start of the turn ---
+    let playerStateAfterRefinery = { ...newPlayerState };
+    let partialBenefitsAfterRefinery = { cardPlays: 0, cardDraw: 0, gold: 0 }; // Initialize partial benefits for refinery
+
+    for (let r = 0; r < 3; r++) {
+      for (let c = 0; c < 3; c++) {
+        if (newGrid[r][c].building === 'Refinery') {
+          const refineryTile = newGrid[r][c];
+          const { playerAttributes: updatedAttrs, partialBenefits: updatedPartial } = applyLandBenefit(
+            refineryTile.landType,
+            playerStateAfterRefinery,
+            false, // Not doubled
+            partialBenefitsAfterRefinery
+          );
+          playerStateAfterRefinery = updatedAttrs;
+          partialBenefitsAfterRefinery = updatedPartial;
+        }
+      }
+    }
+    // Update player state with refinery benefits
+    newPlayerState = playerStateAfterRefinery;
+    // --- End Refinery effects ---
+
     // Generate pending attacks for the next round
     const nextRound = gameState.round + 1;
     const pendingAttacks = generatePendingAttacks(nextRound);
@@ -561,7 +696,7 @@ const App: React.FC = () => {
       specialState: undefined,
       pendingAttacks,
       goldRushEffects: undefined,
-      partialLandBenefits: undefined
+      partialLandBenefits: undefined // Clear partial benefits at end of turn
     });
   };
 
@@ -569,6 +704,14 @@ const App: React.FC = () => {
   const handleNewGame = () => {
     const initialState = initializeGameState();
     setGameState(initialState);
+  };
+
+  // Function to close the tech upgrade modal
+  const handleCloseTechModal = () => {
+    setGameState(prev => ({
+      ...prev!,
+      techTierJustReached: null // Only clear the flag, building placement happens on click
+    }));
   };
 
   return (
@@ -619,6 +762,15 @@ const App: React.FC = () => {
           </>
         )}
         <VersionDisplay />
+        
+        {/* Conditionally render the Tech Upgrade Modal */}
+        {gameState.techTierJustReached && (
+          <TechUpgradeModal 
+            techTier={gameState.techTierJustReached}
+            building={gameState.buildingToPlace}
+            onClose={handleCloseTechModal}
+          />
+        )}
       </div>
     </div>
   );

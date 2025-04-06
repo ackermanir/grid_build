@@ -88,3 +88,32 @@ export const drawCards = (
     newDiscard: currentDiscard
   };
 };
+
+// Function to upgrade base cards when reaching Tech Tier 3
+export const upgradeBaseCards = (cards: Card[]): Card[] => {
+  return cards.map(card => {
+    if (card.name === 'Copper') {
+      // Upgrade Copper: +2 gold
+      return {
+        ...card,
+        effects: { ...card.effects, gold: 2 },
+        description: 'Gain +2 Gold' // Update description
+      };
+    } else if (card.name === 'Defend') {
+      // Upgrade Defend: +4 defense
+      return {
+        ...card,
+        effects: { ...card.effects, defense: 4 },
+        description: 'Gain +4 Defense on the chosen tile' // Update description
+      };
+    } else if (card.name === 'Til the Land') {
+      // Upgrade Til the Land: +1 gold + land benefit
+      return {
+        ...card,
+        effects: { ...card.effects, gold: 1 },
+        description: 'Gain +1 Gold and the benefit of the land type on the chosen tile' // Update description
+      };
+    }
+    return card; // Return unchanged card if not one of the base cards
+  });
+};

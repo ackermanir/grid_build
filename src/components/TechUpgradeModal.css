@@ -1,0 +1,70 @@
+.modal-backdrop {
+  position: fixed; /* Stay in place */
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.6); /* Semi-transparent black */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000; /* Ensure it's on top */
+}
+
+.modal-content {
+  background-color: #f0f0f0; /* Light grey background */
+  padding: 30px;
+  border-radius: 8px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  max-width: 500px; /* Limit width */
+  width: 90%; /* Responsive width */
+  text-align: center;
+  color: #333; /* Darker text */
+  border: 1px solid #ccc;
+}
+
+.modal-content h2 {
+  margin-top: 0;
+  color: #0056b3; /* A blue tone for the title */
+  border-bottom: 2px solid #0056b3;
+  padding-bottom: 10px;
+  margin-bottom: 20px;
+}
+
+.modal-content p {
+  margin-bottom: 15px;
+  font-size: 1.1em;
+}
+
+.building-info {
+  background-color: #e9ecef; /* Slightly different background for info */
+  border-radius: 5px;
+  padding: 15px;
+  margin-top: 20px;
+  margin-bottom: 25px;
+  text-align: left; /* Align text left for readability */
+  border: 1px solid #ced4da;
+}
+
+.building-info pre {
+  white-space: pre-wrap; /* Allow text wrapping */
+  word-wrap: break-word; /* Break long words */
+  font-family: inherit; /* Use the same font as the rest of the modal */
+  font-size: 1em;
+  margin: 0;
+}
+
+.modal-content button {
+  background-color: #28a745; /* Green button */
+  color: white;
+  border: none;
+  padding: 12px 25px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 1.1em;
+  transition: background-color 0.2s ease;
+}
+
+.modal-content button:hover {
+  background-color: #218838; /* Darker green on hover */
+} 

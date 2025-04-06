@@ -116,6 +116,15 @@ export const GameBoard: React.FC<GameBoardProps> = ({
                     🎯
                   </div>
                 )}
+                
+                {/* Building on this tile */}
+                {tile.building && (
+                  <div className="building-indicator">
+                    {tile.building === 'Resource Depot' && '🏭'}
+                    {tile.building === 'Refinery' && '⚙️'}
+                    {tile.building === 'Echo Chamber' && '🔮'}
+                  </div>
+                )}
               </div>
             );
           })}

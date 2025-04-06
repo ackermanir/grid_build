@@ -6,6 +6,7 @@ export interface Tile {
   damage: number;
   cardPlayed: Card | null;
   defenseHistory?: Array<{ defense: number, turnsRemaining: number }>;
+  building?: BuildingType | null;
 }
 
 export type CardType = 'Defense' | 'Gold' | 'Action' | 'Tech';
@@ -79,4 +80,8 @@ export interface GameState {
     cardDraw: number;
     gold: number;
   };
+  buildingToPlace?: BuildingType | null;
+  techTierJustReached?: number | null;
 }
+
+export type BuildingType = 'Resource Depot' | 'Refinery' | 'Echo Chamber';
