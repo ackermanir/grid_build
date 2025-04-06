@@ -1,13 +1,13 @@
 {
   "files": {
     "main.css": "/grid_build/static/css/main.e3c50462.css",
-    "main.js": "/grid_build/static/js/main.fc030ecc.js",
+    "main.js": "/grid_build/static/js/main.bfa5c151.js",
     "index.html": "/grid_build/index.html",
     "main.e3c50462.css.map": "/grid_build/static/css/main.e3c50462.css.map",
-    "main.fc030ecc.js.map": "/grid_build/static/js/main.fc030ecc.js.map"
+    "main.bfa5c151.js.map": "/grid_build/static/js/main.bfa5c151.js.map"
   },
   "entrypoints": [
     "static/css/main.e3c50462.css",
-    "static/js/main.fc030ecc.js"
+    "static/js/main.bfa5c151.js"
   ]
 }
