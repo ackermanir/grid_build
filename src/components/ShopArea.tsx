@@ -15,9 +15,9 @@ export const ShopArea: React.FC<ShopAreaProps> = ({
   buys,
   onBuyCard 
 }) => {
-  // Check if player can afford a card
-  const canAfford = (card: Card): boolean => {
-    return gold >= card.cost && buys > 0;
+  // Check if player can afford AND if card is available
+  const canBuy = (card: Card): boolean => {
+    return gold >= card.cost && buys > 0 && (card.quantity ?? 0) > 0; // Check quantity
   };
 
   return (
@@ -33,13 +33,15 @@ export const ShopArea: React.FC<ShopAreaProps> = ({
         {shop
           .sort((a, b) => a.cost - b.cost)
           .map(card => {
-          const affordable = canAfford(card);
+          const buyable = canBuy(card); // Use updated check
           
           return (
             <div
               key={card.id}
-              className={`shop-card ${affordable ? 'affordable' : 'unaffordable'}`}
-              onClick={() => affordable && onBuyCard(card)}
+              // Add class based on quantity and buyability
+              className={`shop-card ${buyable ? 'affordable' : 'unaffordable'} ${card.quantity === 0 ? 'empty' : ''}`}
+              // Only allow click if buyable
+              onClick={() => buyable && onBuyCard(card)}
             >
               <div className="card-header">
                 <span className="card-name">{card.name}</span>
@@ -47,6 +49,8 @@ export const ShopArea: React.FC<ShopAreaProps> = ({
               </div>
               <div className="card-emoji">{card.emoji}</div>
               <div className="card-type">{card.type}</div>
+              {/* Display Quantity */}
+              <div className="card-quantity">Qty: {card.quantity ?? 'N/A'}</div>
               <div className="card-description">{card.description}</div>
               <div className="card-effects">
                 {Object.entries(card.effects).map(([key, value]) => {

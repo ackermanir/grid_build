@@ -642,6 +642,19 @@ const App: React.FC<AppProps> = ({ initialTestState, onStateUpdateForTest }) => 
     }
     
     // --- Handle non-tech card purchase --- //
+
+    // Find the specific card instance in the shop to check quantity
+    const shopCardInstance = gameState.shop.find(c => c.id === card.id);
+
+    // Check if player can afford, has buys, AND card is available
+    if (gameState.player.gold < card.cost || 
+        gameState.player.buys <= 0 || 
+        !shopCardInstance || 
+        (shopCardInstance.quantity ?? 0) <= 0
+    ) {
+      console.log('Cannot buy card - insufficient resources or quantity.');
+      return; // Prevent purchase
+    }
     
     // Update player state
     const newPlayerState = {
@@ -650,29 +663,24 @@ const App: React.FC<AppProps> = ({ initialTestState, onStateUpdateForTest }) => 
       buys: gameState.player.buys - 1
     };
     
-    // Add card to discard pile
-    const newDiscard = [...gameState.discard, card];
+    // Add card to discard pile (Create a new instance for the player)
+    // Important: Use the base card data, not the shop instance with quantity
+    const purchasedCardInstance = createCardInstance(card, Date.now() + Math.random()); 
+    const newDiscard = [...gameState.discard, purchasedCardInstance];
     
-    // Remove card from shop and replace it
-    let newShop = gameState.shop.filter(c => c.id !== card.id);
-    
-    // Add a new card to the shop (if possible)
-    const availableCards = generateShopCards(gameState.player.techTier);
-    const cardsNotInShop = availableCards.filter(
-      c => !newShop.some(shopCard => shopCard.name === c.name) && c.name !== card.name // Ensure we don't re-add the just bought card if it came from the base set
+    // Decrement quantity in the shop
+    const newShop = gameState.shop.map(c => 
+      c.id === card.id 
+        ? { ...c, quantity: (c.quantity ?? 1) - 1 } // Decrement quantity
+        : c
     );
     
-    if (cardsNotInShop.length > 0) {
-      const randomIndex = Math.floor(Math.random() * cardsNotInShop.length);
-      newShop.push(createCardInstance(cardsNotInShop[randomIndex], Date.now() + Math.random())); 
-    }
-    
-    // Update game state
+    // Update game state (player, discard, and shop)
     setGameState(prev => {
         if (!prev) return null;
         return {
             ...prev,
-            shop: newShop,
+            shop: newShop, // Update shop with decremented quantity
             discard: newDiscard,
             player: newPlayerState
         };

@@ -41,6 +41,7 @@ export interface Card {
   effects: CardEffect;
   description: string;
   emoji: string;
+  quantity?: number;
 }
 
 export interface PlayerAttributes {
