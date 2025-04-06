@@ -509,11 +509,14 @@ const App: React.FC = () => {
         if (newTechTier === 2) buildingToPlace = 'Resource Depot';
         else if (newTechTier === 3) {
            buildingToPlace = 'Refinery';
-           // TODO: Handle base card upgrades + shop refresh when buying Tier 3 card?
-           // This is tricky because the upgrades should ideally happen immediately,
-           // but the current upgrade logic is tied to handleCardPlacement.
-           // For now, we'll just set the building flag. Need to refactor later.
-           console.warn("Tier 3 card bought - Base card upgrades need refactoring to apply here.");
+           // --- Upgrade Base Cards when buying Tier 3 --- 
+           console.log('Upgrading base cards after buying Tier 3 tech');
+           // Directly upgrade the current game state's card lists
+           const upgradedHand = upgradeBaseCards(gameState.hand);
+           const upgradedDeck = upgradeBaseCards(gameState.deck);
+           const upgradedDiscard = upgradeBaseCards(gameState.discard);
+           // These upgraded lists will be used in the final setGameState call below
+           // --- End Base Card Upgrade ---
         } 
         else if (newTechTier === 4) buildingToPlace = 'Echo Chamber';
       }
@@ -536,14 +539,25 @@ const App: React.FC = () => {
       });
       
       // Update game state
-      setGameState({
-        ...gameState,
-        shop: newShop,
-        player: newPlayerState,
-        gameOver,
-        victory,
-        buildingToPlace,
-        techTierJustReached
+      setGameState(prev => {
+        // Use upgraded lists only if Tier 3 was just reached by this purchase
+        const isTier3Upgrade = newTechTier === 3 && newTechTier > currentTechTier;
+        const finalHand = isTier3Upgrade ? upgradeBaseCards(prev!.hand) : prev!.hand;
+        const finalDeck = isTier3Upgrade ? upgradeBaseCards(prev!.deck) : prev!.deck;
+        const finalDiscard = isTier3Upgrade ? upgradeBaseCards(prev!.discard) : prev!.discard;
+
+        return {
+          ...prev!,
+          hand: finalHand,
+          deck: finalDeck,
+          discard: finalDiscard,
+          shop: newShop,
+          player: newPlayerState,
+          gameOver,
+          victory,
+          buildingToPlace,
+          techTierJustReached
+        };
       });
       
       return;
